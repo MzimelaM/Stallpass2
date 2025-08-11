@@ -10,10 +10,10 @@ class LectureAttendancePage extends StatefulWidget {
 class _LectureAttendancePageState extends State<LectureAttendancePage> {
   // Example hardcoded student list
   final List<Map<String, dynamic>> students = [
-    {'id': 101, 'name': 'John Doe', 'present': false},
-    {'id': 102, 'name': 'Jane Smith', 'present': false},
-    {'id': 103, 'name': 'Michael Brown', 'present': false},
-    {'id': 104, 'name': 'Emily Johnson', 'present': false},
+    {'id': 101, 'name': 'katie', 'present': false},
+    {'id': 102, 'name': 'mpilohle', 'present': false},
+    {'id': 103, 'name': 'patience', 'present': false},
+    {'id': 104, 'name': 'ofentse', 'present': false},
   ];
 
   // Lecture attendance status
