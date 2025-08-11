@@ -6,11 +6,10 @@ class AnalyticsPage extends StatelessWidget {
   // Example attendance data
   // You can replace this with your actual data source
   final List<Map<String, dynamic>> attendanceData = const [
-    {'id': 101, 'name': 'Mnelisi', 'status': 'Present'},
-    {'id': 102, 'name': 'Mpilonhle', 'status': 'Absent'},
-    {'id': 103, 'name': 'patience', 'status': 'Present'},
-    {'id': 104, 'name': 'phakathi', 'status': 'Present'},
-    {'id': 105, 'name': 'lebaka', 'status': 'Absent'},
+    {'id': 101, 'name': 'katie', 'present': false},
+    {'id': 102, 'name': 'mpilohle', 'present': false},
+    {'id': 103, 'name': 'patience', 'present': false},
+    {'id': 104, 'name': 'ofentse', 'present': false},
   ];
 
   @override
