@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'SignUpPage.dart';
 import 'HomePage.dart';
+import 'AdminLoginPage.dart'; // <-- add this
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -58,6 +59,7 @@ class LoginPage extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 20),
+                // Student sign-up row
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -74,6 +76,30 @@ class LoginPage extends StatelessWidget {
                         style: TextStyle(
                           color: Colors.blue,
                           decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                // Admin login link
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text("Are you an admin? "),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const AdminLoginPage()),
+                        );
+                      },
+                      child: const Text(
+                        'Admin Login',
+                        style: TextStyle(
+                          color: Colors.blue,
+                          decoration: TextDecoration.underline,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
