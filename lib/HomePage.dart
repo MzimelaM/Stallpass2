@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:stallpass_app/state/app_state.dart';
 import 'AttendancePage.dart';
 import 'DepartmentAnnoucementsPage.dart';
 import 'NotificationPage.dart';
 import 'SuccessPage.dart';
 import 'ProfileSettingsPage.dart';
 import 'ScanQrCode.dart';
+import 'events_screen.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final appState = Provider.of<AppState>(context);
+    
     return Scaffold(
       appBar: AppBar(
         title: const Text('StallPass Event App'),
@@ -29,7 +34,6 @@ class HomePage extends StatelessWidget {
                 style: TextStyle(color: Colors.white, fontSize: 24),
               ),
             ),
-            // Existing menu items
             ListTile(
               title: const Text('Department Announcements'),
               onTap: () {
@@ -41,6 +45,13 @@ class HomePage extends StatelessWidget {
               onTap: () {
                 _navigateTo(context, const NotificationPage());
               },
+            ),
+            ListTile(
+              title: const Text('Campus Events'),
+              onTap: () => _navigateTo(
+                context, 
+                EventsScreen(appState: appState)
+              ),
             ),
             ListTile(
               title: const Text('Success Page'),
@@ -90,9 +101,8 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  // Helper method for navigation to prevent code duplication
   void _navigateTo(BuildContext context, Widget page) {
-    Navigator.pop(context); // Close the drawer first
+    Navigator.pop(context); 
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => page),
