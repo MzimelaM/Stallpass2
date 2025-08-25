@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import '../models.dart';
 
 class AppState extends ChangeNotifier {
+  int? _userId;
+  int? get userId => _userId;
   int _score = 0;
   int _streak = 0; 
   final Set<String> _completedStallIds = {};
@@ -30,4 +32,15 @@ class AppState extends ChangeNotifier {
     _completedStallIds.clear();
     notifyListeners();
   }
+  void setUserId(dynamic newUserId) {
+    if (newUserId is int) {
+      _userId = newUserId;
+    } else if (newUserId is String) {
+      _userId = int.tryParse(newUserId);
+    }
+    notifyListeners();
+  }
+
+
 }
+

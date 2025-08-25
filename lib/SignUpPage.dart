@@ -18,18 +18,8 @@ class _SignUpPageState extends State<SignUpPage> {
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
 
-  @override
-  void dispose() {
-    _fullNameController.dispose();
-    _studentNumberController.dispose();
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
-  }
-
   Future<void> _signUp() async {
     if (!_formKey.currentState!.validate()) return;
-
     setState(() => _isLoading = true);
 
     try {
@@ -38,29 +28,25 @@ class _SignUpPageState extends State<SignUpPage> {
         uri,
         headers: {"Content-Type": "application/json"},
         body: json.encode({
-          "name": _fullNameController.text.trim(),
+          "full_name": _fullNameController.text.trim(),
           "student_number": _studentNumberController.text.trim(),
           "email": _emailController.text.trim(),
           "password": _passwordController.text,
-          "role": "user",   // 👈 tell backend this is a normal user
         }),
       );
 
       final body = json.decode(response.body);
       final message = body['message'] ?? 'Unknown response';
 
-      if (response.statusCode == 201) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(message)));
+      if (response.statusCode == 200) {
         Navigator.pushReplacement(
             context, MaterialPageRoute(builder: (_) => const LoginPage()));
-      } else {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(message)));
       }
-    } catch (e) {
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("Error: $e")));
+          .showSnackBar(SnackBar(content: Text(message)));
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error: $e")));
     } finally {
       setState(() => _isLoading = false);
     }
@@ -82,125 +68,58 @@ class _SignUpPageState extends State<SignUpPage> {
             key: _formKey,
             child: Column(
               children: [
-                const SizedBox(height: 40),
-                Column(
-                  children: const [
-                    Icon(Icons.qr_code, size: 80, color: Color(0xFF3F51B5)),
-                    SizedBox(height: 10),
-                    Text("STALL PASS",
-                        style: TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF3F51B5))),
-                    Text("SCAN.ENGAGE.SUCCEED",
-                        style: TextStyle(fontSize: 14, color: Colors.black54)),
-                  ],
-                ),
+                const Icon(Icons.qr_code, size: 80, color: Color(0xFF3F51B5)),
+                const SizedBox(height: 10),
+                const Text("STALL PASS",
+                    style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF3F51B5))),
+                const Text("SCAN.ENGAGE.SUCCEED",
+                    style: TextStyle(fontSize: 14, color: Colors.black54)),
                 const SizedBox(height: 40),
 
-                const Text("Create Account",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+                const Text("Hi there! Fill in to join!",
+                    style:
+                    TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
                 const SizedBox(height: 20),
-
 
                 TextFormField(
                   controller: _fullNameController,
-                  decoration: InputDecoration(
-                    hintText: "Full Name",
-                    prefixIcon: const Icon(Icons.person),
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                        borderSide: BorderSide.none),
-                  ),
+                  decoration: _inputStyle("Full Name", Icons.person),
                   validator: (v) => _validateNotEmpty(v, 'Full Name'),
                 ),
                 const SizedBox(height: 15),
 
-
-                TextFormField(
-                  controller: _studentNumberController,
-                  decoration: InputDecoration(
-                    hintText: "Student Number",
-                    prefixIcon: const Icon(Icons.badge),
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                        borderSide: BorderSide.none),
-                  ),
-                  validator: (v) => _validateNotEmpty(v, 'Student Number'),
-                ),
-                const SizedBox(height: 15),
-
-
                 TextFormField(
                   controller: _emailController,
-                  decoration: InputDecoration(
-                    hintText: "Email",
-                    prefixIcon: const Icon(Icons.email),
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                        borderSide: BorderSide.none),
-                  ),
-                  keyboardType: TextInputType.emailAddress,
+                  decoration: _inputStyle("Email", Icons.email),
                   validator: (v) => _validateNotEmpty(v, 'Email'),
                 ),
                 const SizedBox(height: 15),
 
+                TextFormField(
+                  controller: _studentNumberController,
+                  decoration: _inputStyle("Student Number", Icons.badge),
+                  validator: (v) => _validateNotEmpty(v, 'Student Number'),
+                ),
+                const SizedBox(height: 15),
 
                 TextFormField(
                   controller: _passwordController,
                   obscureText: true,
-                  decoration: InputDecoration(
-                    hintText: "Password",
-                    prefixIcon: const Icon(Icons.lock),
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                        borderSide: BorderSide.none),
-                  ),
+                  decoration: _inputStyle("Password", Icons.lock),
                   validator: (v) => _validateNotEmpty(v, 'Password'),
                 ),
                 const SizedBox(height: 20),
 
-
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF3F51B5),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30)),
-                    ),
-                    onPressed: _isLoading ? null : _signUp,
-                    child: _isLoading
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text("Sign Up", style: TextStyle(fontSize: 18)),
-                  ),
-                ),
-
+                _purpleButton("Sign Up", _signUp),
                 const SizedBox(height: 20),
 
                 const Text("Or continue with"),
                 const SizedBox(height: 15),
 
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
-                    Icon(Icons.g_mobiledata, size: 40, color: Colors.red),
-                    SizedBox(width: 20),
-                    Icon(Icons.apple, size: 40, color: Colors.black),
-                    SizedBox(width: 20),
-                    Icon(Icons.facebook, size: 40, color: Colors.blue),
-                  ],
-                ),
-
+                _socialRow(),
                 const SizedBox(height: 20),
 
                 Row(
@@ -224,6 +143,49 @@ class _SignUpPageState extends State<SignUpPage> {
           ),
         ),
       ),
+    );
+  }
+
+  InputDecoration _inputStyle(String hint, IconData icon) {
+    return InputDecoration(
+      hintText: hint,
+      prefixIcon: Icon(icon),
+      filled: true,
+      fillColor: Colors.white,
+      border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30),
+          borderSide: BorderSide.none),
+    );
+  }
+
+  Widget _purpleButton(String text, VoidCallback onPressed) {
+    return SizedBox(
+      width: double.infinity,
+      height: 50,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF3F51B5),
+          shape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+        ),
+        onPressed: _isLoading ? null : onPressed,
+        child: _isLoading
+            ? const CircularProgressIndicator(color: Colors.white)
+            : Text(text, style: const TextStyle(fontSize: 18)),
+      ),
+    );
+  }
+
+  Widget _socialRow() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: const [
+        Icon(Icons.g_mobiledata, size: 40, color: Colors.red),
+        SizedBox(width: 20),
+        Icon(Icons.apple, size: 40, color: Colors.black),
+        SizedBox(width: 20),
+        Icon(Icons.facebook, size: 40, color: Colors.blue),
+      ],
     );
   }
 }

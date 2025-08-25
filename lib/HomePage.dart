@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:stallpass_app/state/app_state.dart';
-import 'AttendancePage.dart';
 import 'DepartmentAnnoucementsPage.dart';
 import 'NotificationPage.dart';
 import 'SuccessPage.dart';
+import 'AttendancePage.dart';
 import 'ProfileSettingsPage.dart';
 import 'ScanQrCode.dart';
 import 'events_screen.dart';
+import 'state/app_state.dart';
+import 'package:provider/provider.dart';
 
 class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+  final int userId; // ✅ constructor parameter
+  const HomePage({super.key, required this.userId});
 
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('StallPass Event App'),
@@ -36,48 +37,41 @@ class HomePage extends StatelessWidget {
             ),
             ListTile(
               title: const Text('Department Announcements'),
-              onTap: () {
-                _navigateTo(context, const DepartmentAnnouncementsPage());
-              },
+              onTap: () => _navigateTo(context, const DepartmentAnnouncementsPage()),
             ),
             ListTile(
               title: const Text('Notifications'),
-              onTap: () {
-                _navigateTo(context, const NotificationPage());
-              },
+              onTap: () => _navigateTo(context, const NotificationPage()),
             ),
             ListTile(
               title: const Text('Campus Events'),
               onTap: () => _navigateTo(
-                context, 
-                EventsScreen(appState: appState)
+                context,
+                EventsScreen(appState: appState),
               ),
             ),
             ListTile(
               title: const Text('Success Page'),
-              onTap: () {
-                _navigateTo(context, const SuccessPage());
-              },
+              onTap: () => _navigateTo(context, const SuccessPage()),
             ),
             ListTile(
               title: const Text('Attendance Profile'),
-              onTap: () {
-                _navigateTo(context, const AttendancePage());
-              },
+              onTap: () => _navigateTo(context, const AttendancePage()),
             ),
             ListTile(
               title: const Text('Profile Settings'),
               onTap: () {
-                _navigateTo(context, const ProfileSettingsPage());
+                // ✅ Pass userId from constructor
+                _navigateTo(
+                  context,
+                  ProfileSettingsPage(userId: userId),
+                );
               },
             ),
-            // New QR Scanner menu item
             ListTile(
               leading: const Icon(Icons.qr_code_scanner, color: Color(0xFF3F51B5)),
               title: const Text('Scan QR Code'),
-              onTap: () {
-                _navigateTo(context, const QRScannerPage());
-              },
+              onTap: () => _navigateTo(context, const QRScannerPage()),
             ),
           ],
         ),
@@ -85,15 +79,15 @@ class HomePage extends StatelessWidget {
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
+          children: [
             Text(
               'Welcome to StallPass!',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Text(
-              'Manage your event participation easily.',
-              style: TextStyle(fontSize: 16),
+              'Logged in as user ID: $userId',
+              style: const TextStyle(fontSize: 16),
             ),
           ],
         ),
@@ -102,7 +96,7 @@ class HomePage extends StatelessWidget {
   }
 
   void _navigateTo(BuildContext context, Widget page) {
-    Navigator.pop(context); 
+    Navigator.pop(context); // close drawer
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => page),

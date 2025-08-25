@@ -1,5 +1,3 @@
-// android/app/build.gradle.kts
-
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -8,12 +6,12 @@ plugins {
 
 android {
     namespace = "com.example.stallpass_app"
-    compileSdk = 34
+    compileSdk = 36
     ndkVersion = "27.0.12077973"
 
     defaultConfig {
         applicationId = "com.example.stallpass_app"
-        minSdk = 21
+        minSdk= 24
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"

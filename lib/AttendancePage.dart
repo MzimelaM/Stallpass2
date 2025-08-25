@@ -8,7 +8,7 @@ class AttendancePage extends StatelessWidget {
     return Scaffold(
       body: Column(
         children: [
-          // Blue banner with "My Attendance"
+
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 20),
@@ -31,7 +31,7 @@ class AttendancePage extends StatelessWidget {
             child: Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                "Welcome Username", // Replace with actual username if available
+                "Welcome Username",
                 style: TextStyle(
                   fontSize: 18,
                   color: Colors.grey[700],
