@@ -29,39 +29,74 @@ class NotificationPage extends StatelessWidget {
     ];
 
     return Scaffold(
+      backgroundColor: const Color(0xFFD9D6F5),
       appBar: AppBar(
-        title: const Text('Notifications'),
-        backgroundColor: const Color(0xFF3F51B5),
+        backgroundColor: const Color(0xFFD9D6F5),
+        elevation: 0,
+        centerTitle: true,
+        title: const Text(
+          "NOTIFICATIONS",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+            color: Color(0xFF3F51B5),
+          ),
+        ),
+        iconTheme: const IconThemeData(color: Colors.black),
       ),
       body: ListView.builder(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(16),
         itemCount: notifications.length,
         itemBuilder: (context, index) {
           final item = notifications[index];
-          return Card(
-            color: const Color(0xFFF2F2F2),
-            margin: const EdgeInsets.symmetric(vertical: 8),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: ListTile(
-              title: Text(
-                item['title']!,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blue,
+          return Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 6,
+                  offset: const Offset(0, 3),
                 ),
+              ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item['title']!,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                      color: Color(0xFF3F51B5),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    item['message']!,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Colors.black87,
+                      height: 1.3,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Align(
+                    alignment: Alignment.bottomRight,
+                    child: Text(
+                      item['time']!,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              subtitle: Padding(
-                padding: const EdgeInsets.only(top: 6.0),
-                child: Text(
-                  item['message']!,
-                  style: const TextStyle(color: Colors.black87),
-                ),
-              ),
-              trailing: Text(
-                item['time']!,
-                style: const TextStyle(color: Colors.grey),
-              ),
-              contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
             ),
           );
         },

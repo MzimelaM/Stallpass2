@@ -4,9 +4,12 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 class QRScannerPage extends StatefulWidget {
   const QRScannerPage({super.key});
 
+
+
   @override
   State<QRScannerPage> createState() => _QRScannerPageState();
 }
+
 
 class _QRScannerPageState extends State<QRScannerPage> {
   MobileScannerController cameraController = MobileScannerController();

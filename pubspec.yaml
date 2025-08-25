@@ -14,7 +14,7 @@ dependencies:
   mobile_scanner: ^3.0.0  # For QR code scanning
   fluttertoast: ^8.2.2    # For showing toast messages
   provider: ^6.1.1        # For state management (optional but recommended)
-  http: ^1.2.1            # <-- Added for API calls to backend
+  http: ^0.13.6            # <-- Added for API calls to backend
 
   cupertino_icons: ^1.0.8
   url_launcher: ^6.3.2
