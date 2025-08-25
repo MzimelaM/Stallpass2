@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'AdminSignUpPage.dart';
+import 'EventManagement.dart'; // Correct import for EventManagementPage
 
 class AdminLoginPage extends StatefulWidget {
   const AdminLoginPage({super.key});
@@ -8,111 +10,161 @@ class AdminLoginPage extends StatefulWidget {
 }
 
 class _AdminLoginPageState extends State<AdminLoginPage> {
-  bool _obscurePassword = true;
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  bool obscurePassword = true;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Purple wavy header
-            Container(
-              height: 200,
-              decoration: const BoxDecoration(
-                color: Color(0xFF4A3AFF),
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(80),
-                ),
+      backgroundColor: const Color(0xFFD6D6F5),
+      body: Padding(
+        padding: const EdgeInsets.all(20),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const SizedBox(height: 60),
+
+              // Logo + Title
+              Column(
+                children: const [
+                  Icon(Icons.qr_code, size: 80, color: Colors.teal),
+                  SizedBox(height: 10),
+                  Text("STALL PASS",
+                      style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black)),
+                  Text("SCAN.ENGAGE.SUCCEED",
+                      style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black54)),
+                ],
               ),
-              child: const Center(
-                child: Text(
-                  "Admin Login",
+
+              const SizedBox(height: 30),
+              const Text("Welcome Back!",
                   style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black)),
+              const SizedBox(height: 20),
 
-            const SizedBox(height: 30),
-
-            // Username field
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: TextField(
+              // Email
+              TextField(
+                controller: emailController,
                 decoration: InputDecoration(
-                  hintText: 'Admin Username',
-                  prefixIcon: const Icon(Icons.person),
+                  hintText: "Email",
+                  prefixIcon: const Icon(Icons.email),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                      borderRadius: BorderRadius.circular(30)),
+                  filled: true,
+                  fillColor: Colors.white,
                 ),
               ),
-            ),
+              const SizedBox(height: 15),
 
-            const SizedBox(height: 16),
-
-            // Password field
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: TextField(
-                obscureText: _obscurePassword,
+              // Password
+              TextField(
+                controller: passwordController,
+                obscureText: obscurePassword,
                 decoration: InputDecoration(
-                  hintText: 'Password',
+                  hintText: "Password",
                   prefixIcon: const Icon(Icons.lock),
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _obscurePassword
-                          ? Icons.visibility_off
-                          : Icons.visibility,
-                    ),
+                        obscurePassword ? Icons.visibility : Icons.visibility_off),
                     onPressed: () {
                       setState(() {
-                        _obscurePassword = !_obscurePassword;
+                        obscurePassword = !obscurePassword;
                       });
                     },
                   ),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                      borderRadius: BorderRadius.circular(30)),
+                  filled: true,
+                  fillColor: Colors.white,
                 ),
               ),
-            ),
 
-            const SizedBox(height: 30),
+              const SizedBox(height: 10),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () {},
+                  child: const Text("Forgot Password?"),
+                ),
+              ),
 
-            // Login button
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: SizedBox(
+              // ✅ Sign In button
+              SizedBox(
                 width: double.infinity,
-                height: 48,
                 child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF4A3AFF),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
                   onPressed: () {
-                    // TODO: Implement admin login logic here
-                    // For now, just print or navigate somewhere
-                    print('Admin Login pressed');
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const EventManagementPage()), // ✅ FIXED
+                    );
                   },
-                  child: const Text(
-                    "Log In",
-                    style: TextStyle(fontSize: 16),
-                  ),
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30)),
+                      padding: const EdgeInsets.symmetric(vertical: 15)),
+                  child: const Text("Sign In",
+                      style: TextStyle(color: Colors.white, fontSize: 16)),
                 ),
               ),
-            ),
-          ],
+
+              const SizedBox(height: 20),
+              Row(
+                children: const [
+                  Expanded(child: Divider(thickness: 1)),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 10),
+                    child: Text("or"),
+                  ),
+                  Expanded(child: Divider(thickness: 1)),
+                ],
+              ),
+              const SizedBox(height: 15),
+
+              // Social icons
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [
+                  Icon(Icons.g_mobiledata, size: 40, color: Colors.red),
+                  SizedBox(width: 20),
+                  Icon(Icons.apple, size: 40, color: Colors.black),
+                  SizedBox(width: 20),
+                  Icon(Icons.facebook, size: 40, color: Colors.blue),
+                ],
+              ),
+
+              const SizedBox(height: 20),
+              // Link to Sign Up
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text("Don’t have an account? "),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const AdminSignUpPage()),
+                      );
+                    },
+                    child: const Text("Sign Up",
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, color: Colors.blue)),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

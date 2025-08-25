@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'HomePage.dart';
+import 'LoginPage.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -11,128 +11,181 @@ class SignUpPage extends StatefulWidget {
 }
 
 class _SignUpPageState extends State<SignUpPage> {
-  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _fullNameController = TextEditingController();
+  final TextEditingController _studentNumberController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
-
+  final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
 
   Future<void> _signUp() async {
-    if (_passwordController.text != _confirmPasswordController.text) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Passwords do not match")),
-      );
-      return;
-    }
-
-    setState(() {
-      _isLoading = true;
-    });
+    if (!_formKey.currentState!.validate()) return;
+    setState(() => _isLoading = true);
 
     try {
+      final uri = Uri.parse("http://10.0.2.2:3000/signup");
       final response = await http.post(
-        Uri.parse("http://10.0.2.2:3000/signup"), // Android emulator special IP
+        uri,
         headers: {"Content-Type": "application/json"},
         body: json.encode({
-          "fullName": _nameController.text,
-          "email": _emailController.text,
+          "full_name": _fullNameController.text.trim(),
+          "student_number": _studentNumberController.text.trim(),
+          "email": _emailController.text.trim(),
           "password": _passwordController.text,
         }),
       );
 
+      final body = json.decode(response.body);
+      final message = body['message'] ?? 'Unknown response';
+
       if (response.statusCode == 200) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Sign up successful")),
-        );
         Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const HomePage()),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Failed: ${response.body}")),
-        );
+            context, MaterialPageRoute(builder: (_) => const LoginPage()));
       }
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(message)));
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e")),
-      );
+          SnackBar(content: Text("Error: $e")));
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() => _isLoading = false);
     }
+  }
+
+  String? _validateNotEmpty(String? value, String fieldName) {
+    if (value == null || value.trim().isEmpty) return '$fieldName is required';
+    return null;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: Padding(
-        padding: const EdgeInsets.all(25.0),
-        child: Center(
-          child: SingleChildScrollView(
+      backgroundColor: const Color(0xFFD9D6F5),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 25),
+          child: Form(
+            key: _formKey,
             child: Column(
               children: [
-                const SizedBox(height: 50),
-                const Text(
-                  "Sign Up",
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-                ),
+                const Icon(Icons.qr_code, size: 80, color: Color(0xFF3F51B5)),
+                const SizedBox(height: 10),
+                const Text("STALL PASS",
+                    style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF3F51B5))),
+                const Text("SCAN.ENGAGE.SUCCEED",
+                    style: TextStyle(fontSize: 14, color: Colors.black54)),
                 const SizedBox(height: 40),
-                TextField(
-                  controller: _nameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Full Name',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
+
+                const Text("Hi there! Fill in to join!",
+                    style:
+                    TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
                 const SizedBox(height: 20),
-                TextField(
+
+                TextFormField(
+                  controller: _fullNameController,
+                  decoration: _inputStyle("Full Name", Icons.person),
+                  validator: (v) => _validateNotEmpty(v, 'Full Name'),
+                ),
+                const SizedBox(height: 15),
+
+                TextFormField(
                   controller: _emailController,
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    border: OutlineInputBorder(),
-                  ),
+                  decoration: _inputStyle("Email", Icons.email),
+                  validator: (v) => _validateNotEmpty(v, 'Email'),
                 ),
-                const SizedBox(height: 20),
-                TextField(
+                const SizedBox(height: 15),
+
+                TextFormField(
+                  controller: _studentNumberController,
+                  decoration: _inputStyle("Student Number", Icons.badge),
+                  validator: (v) => _validateNotEmpty(v, 'Student Number'),
+                ),
+                const SizedBox(height: 15),
+
+                TextFormField(
                   controller: _passwordController,
                   obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Enter Your Password',
-                    border: OutlineInputBorder(),
-                  ),
+                  decoration: _inputStyle("Password", Icons.lock),
+                  validator: (v) => _validateNotEmpty(v, 'Password'),
                 ),
                 const SizedBox(height: 20),
-                TextField(
-                  controller: _confirmPasswordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Confirm Password',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
+
+                _purpleButton("Sign Up", _signUp),
                 const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  height: 45,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _signUp,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue[800],
+
+                const Text("Or continue with"),
+                const SizedBox(height: 15),
+
+                _socialRow(),
+                const SizedBox(height: 20),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text("Already have an account? "),
+                    GestureDetector(
+                      onTap: () => Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const LoginPage())),
+                      child: const Text("Sign In",
+                          style: TextStyle(
+                              color: Color(0xFF3F51B5),
+                              fontWeight: FontWeight.bold)),
                     ),
-                    child: _isLoading
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text('Sign Up'),
-                  ),
+                  ],
                 ),
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+
+  InputDecoration _inputStyle(String hint, IconData icon) {
+    return InputDecoration(
+      hintText: hint,
+      prefixIcon: Icon(icon),
+      filled: true,
+      fillColor: Colors.white,
+      border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30),
+          borderSide: BorderSide.none),
+    );
+  }
+
+  Widget _purpleButton(String text, VoidCallback onPressed) {
+    return SizedBox(
+      width: double.infinity,
+      height: 50,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF3F51B5),
+          shape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+        ),
+        onPressed: _isLoading ? null : onPressed,
+        child: _isLoading
+            ? const CircularProgressIndicator(color: Colors.white)
+            : Text(text, style: const TextStyle(fontSize: 18)),
+      ),
+    );
+  }
+
+  Widget _socialRow() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: const [
+        Icon(Icons.g_mobiledata, size: 40, color: Colors.red),
+        SizedBox(width: 20),
+        Icon(Icons.apple, size: 40, color: Colors.black),
+        SizedBox(width: 20),
+        Icon(Icons.facebook, size: 40, color: Colors.blue),
+      ],
     );
   }
 }

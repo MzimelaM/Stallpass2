@@ -6,32 +6,41 @@ import 'SuccessPage.dart';
 import 'ProfileSettingsPage.dart';
 import 'ScanQrCode.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatelessWidget { 
   const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFD9D6F5),
       appBar: AppBar(
-        title: const Text('StallPass Event App'),
-        backgroundColor: const Color(0xFF3F51B5),
+        backgroundColor: const Color(0xFFD9D6F5),
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.black),
       ),
       drawer: Drawer(
+        backgroundColor: const Color(0xFFD9D6F5),
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
             const DrawerHeader(
               decoration: BoxDecoration(
-                color: Color(0xFF3F51B5),
+                color: Color(0xFFD9D6F5),
               ),
-              child: Text(
-                'Menu',
-                style: TextStyle(color: Colors.white, fontSize: 24),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Menu',
+                  style: TextStyle(
+                    color: Color(0xFF3F51B5),
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
-            // Existing menu items
             ListTile(
-              title: const Text('Department Announcements'),
+              title: const Text('Department Announcement'),
               onTap: () {
                 _navigateTo(context, const DepartmentAnnouncementsPage());
               },
@@ -59,13 +68,18 @@ class HomePage extends StatelessWidget {
               onTap: () {
                 _navigateTo(context, const ProfileSettingsPage());
               },
-            ),
-            // New QR Scanner menu item
-            ListTile(
+            ),ListTile(
               leading: const Icon(Icons.qr_code_scanner, color: Color(0xFF3F51B5)),
               title: const Text('Scan QR Code'),
               onTap: () {
-                _navigateTo(context, const QRScannerPage());
+                // Make sure studentNumber is defined in this page (from login or stored session)
+                String studentNumber = "2023001"; // Example, replace with actual logged-in student
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => QRScannerPage(studentNumber: studentNumber), // camelCase!
+                  ),
+                );
               },
             ),
           ],
@@ -75,14 +89,21 @@ class HomePage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: const [
+            Icon(Icons.qr_code, size: 100, color: Color(0xFF3F51B5)),
+            SizedBox(height: 20),
             Text(
-              'Welcome to StallPass!',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              'WELCOME TO STALLPASS!!!',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF3F51B5),
+              ),
             ),
             SizedBox(height: 10),
             Text(
-              'Manage your event participation easily.',
-              style: TextStyle(fontSize: 16),
+              'Manage your Event Participation easily.',
+              style: TextStyle(fontSize: 14, color: Colors.black54),
             ),
           ],
         ),
@@ -90,9 +111,8 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  // Helper method for navigation to prevent code duplication
   void _navigateTo(BuildContext context, Widget page) {
-    Navigator.pop(context); // Close the drawer first
+    Navigator.pop(context);
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => page),

@@ -1,108 +1,132 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
-class DepartmentAnnouncementsPage extends StatelessWidget {
+class DepartmentAnnouncementsPage extends StatefulWidget {
   const DepartmentAnnouncementsPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final List<Map<String, String>> announcements = [
-      {
-        'title': 'GET READY FOR OPEN DAY - SCAN TO ENGAGE',
-        'date': '10 January 2025',
-        'time': '14:10',
-        'location': 'Main Hall',
-      },
-      {
-        'title': 'EVENT ATTENDANCE NOW DIGITAL!',
-        'date': '15 March 2025',
-        'time': '12:25',
-        'location': 'Auditorium',
-      },
-      {
-        'title': 'CODING BOOTCAMP ALERT',
-        'date': '15 April 2025',
-        'time': '10:00',
-        'location': 'Lab 204',
-      },
-    ];
+  State<DepartmentAnnouncementsPage> createState() =>
+      _DepartmentAnnouncementsPageState();
+}
 
+class _DepartmentAnnouncementsPageState
+    extends State<DepartmentAnnouncementsPage> {
+  List<Map<String, dynamic>> _events = [];
+  final String apiUrl = "http://10.0.2.2:3000"; // Localhost for Android Emulator
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchEvents();
+  }
+
+  /// ✅ Fetch events from Node.js backend
+  Future<void> _fetchEvents() async {
+    try {
+      final response = await http.get(Uri.parse("$apiUrl/events"));
+      if (response.statusCode == 200) {
+        setState(() {
+          _events = List<Map<String, dynamic>>.from(jsonDecode(response.body));
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Failed to load events. Code: ${response.statusCode}")),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text("Error: $e")));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              height: 100,
-              width: double.infinity,
-              color: const Color(0xFF3F51B5),
-              padding: const EdgeInsets.only(top: 40, left: 20),
-              child: const Text(
-                'Department Announcements',
-                style: TextStyle(
-                  fontSize: 22,
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
+      backgroundColor: const Color(0xFFEDEBFF),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFFEDEBFF),
+        elevation: 0,
+        centerTitle: true,
+        title: const Text(
+          "Department Announcements",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+            color: Color(0xFF3F51B5),
+          ),
+        ),
+        iconTheme: const IconThemeData(color: Colors.black),
+      ),
+      body: RefreshIndicator(
+        onRefresh: _fetchEvents,
+        child: _events.isEmpty
+            ? const Center(child: Text("No announcements available"))
+            : ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: _events.length,
+          itemBuilder: (context, index) {
+            final event = _events[index];
+            return Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 6,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(height: 20),
-            const TextField(
-              decoration: InputDecoration(
-                hintText: 'Select Department',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Expanded(
-              child: ListView.builder(
-                itemCount: announcements.length,
-                itemBuilder: (context, index) {
-                  final item = announcements[index];
-                  return Card(
-                    color: Colors.grey[200],
-                    margin: const EdgeInsets.only(bottom: 15),
-                    child: ListTile(
-                      title: Text(
-                        '"${item['title']}"',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.indigo,
-                        ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      event['title'] ?? 'No Title',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                        color: Color(0xFF3F51B5),
                       ),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(item['date']!),
-                          Row(
-                            children: [
-                              const Icon(Icons.location_on, size: 16),
-                              const SizedBox(width: 5),
-                              Text(item['location']!),
-                            ],
-                          ),
-                        ],
-                      ),
-                      trailing: const Text("View More"),
                     ),
-                  );
-                },
-              ),
-            ),
-            SizedBox(
-              width: double.infinity,
-              height: 45,
-              child: ElevatedButton(
-                onPressed: () {
-                  // You can navigate to the QR Scanner Page here
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue[800],
+                    const SizedBox(height: 6),
+                    Text(
+                      event['message'] ?? "No description available.",
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.black87,
+                        height: 1.3,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          event['date'] ?? '',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                          ),
+                        ),
+                        Text(
+                          event['time'] ?? '',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-                child: const Text('QR Scan'),
               ),
-            ),
-          ],
+            );
+          },
         ),
       ),
     );
