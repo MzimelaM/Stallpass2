@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 import 'HomePage.dart';
 import 'SignUpPage.dart';
 import 'AdminLoginPage.dart';
-import 'state/app_state.dart'; // import your AppState
+import 'state/app_state.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -16,15 +16,15 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final TextEditingController emailController = TextEditingController();
+  final TextEditingController studentNumberController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   bool _isLoading = false;
 
   Future<void> loginUser(BuildContext context) async {
-    final email = emailController.text.trim();
+    final studentNumber = studentNumberController.text.trim();
     final password = passwordController.text.trim();
 
-    if (email.isEmpty || password.isEmpty) {
+    if (studentNumber.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please fill in all fields")),
       );
@@ -37,34 +37,32 @@ class _LoginPageState extends State<LoginPage> {
       final response = await http.post(
         Uri.parse("http://10.0.2.2:3000/login"), // backend URL
         headers: {"Content-Type": "application/json"},
-        body: jsonEncode({"email": email, "password": password}),
+        body: jsonEncode({
+          "student_number": studentNumber,
+          "password": password,
+        }),
       );
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = jsonDecode(response.body);
 
-        if (data.containsKey("userId")) {
-          int userId = data["userId"] is int
-              ? data["userId"]
-              : int.tryParse(data["userId"].toString()) ?? -1;
+        if (data.containsKey("student_number")) {
+          String studentNumber = data["student_number"].toString();
 
-          if (userId != -1) {
-            Provider.of<AppState>(context, listen: false).setUserId(userId);
+          // save to AppState
+          Provider.of<AppState>(context, listen: false)
+              .setStudentNumber(studentNumber);
 
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (_) => HomePage(userId: userId),
-              ),
-            );
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Invalid userId from server")),
-            );
-          }
+          // go to HomePage
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => HomePage(studentNumber: studentNumber),
+            ),
+          );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Login failed: userId missing")),
+            const SnackBar(content: Text("Login failed: student number missing")),
           );
         }
       } else {
@@ -139,8 +137,8 @@ class _LoginPageState extends State<LoginPage> {
               ),
               const SizedBox(height: 20),
               TextFormField(
-                controller: emailController,
-                decoration: _inputStyle("Email", Icons.email),
+                controller: studentNumberController,
+                decoration: _inputStyle("Student Number", Icons.badge),
               ),
               const SizedBox(height: 15),
               TextFormField(
@@ -174,19 +172,6 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
               const SizedBox(height: 20),
-              const Text("Or continue with"),
-              const SizedBox(height: 15),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  Icon(Icons.g_mobiledata, size: 40, color: Colors.red),
-                  SizedBox(width: 20),
-                  Icon(Icons.apple, size: 40, color: Colors.black),
-                  SizedBox(width: 20),
-                  Icon(Icons.facebook, size: 40, color: Colors.blue),
-                ],
-              ),
-              const SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -199,7 +184,8 @@ class _LoginPageState extends State<LoginPage> {
                     child: const Text(
                       "Sign Up",
                       style: TextStyle(
-                          color: Color(0xFF3F51B5), fontWeight: FontWeight.bold),
+                          color: Color(0xFF3F51B5),
+                          fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],

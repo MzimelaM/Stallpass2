@@ -5,13 +5,13 @@ import 'SuccessPage.dart';
 import 'AttendancePage.dart';
 import 'ProfileSettingsPage.dart';
 import 'ScanQrCode.dart';
-import 'events_screen.dart';
+//import 'events_screen.dart';
 import 'state/app_state.dart';
 import 'package:provider/provider.dart';
 
 class HomePage extends StatelessWidget {
-  final int userId; // ✅ constructor parameter
-  const HomePage({super.key, required this.userId});
+  final String studentNumber; // updated to String
+  const HomePage({super.key, required this.studentNumber});
 
   @override
   Widget build(BuildContext context) {
@@ -43,13 +43,13 @@ class HomePage extends StatelessWidget {
               title: const Text('Notifications'),
               onTap: () => _navigateTo(context, const NotificationPage()),
             ),
-            ListTile(
-              title: const Text('Campus Events'),
-              onTap: () => _navigateTo(
-                context,
-                EventsScreen(appState: appState),
-              ),
-            ),
+            //ListTile(
+             // title: const Text('Campus Events'),
+             // onTap: () => _navigateTo(
+              //  context,
+                //EventsScreen(appState: appState),
+              //),
+           // ),
             ListTile(
               title: const Text('Success Page'),
               onTap: () => _navigateTo(context, const SuccessPage()),
@@ -61,10 +61,9 @@ class HomePage extends StatelessWidget {
             ListTile(
               title: const Text('Profile Settings'),
               onTap: () {
-                // ✅ Pass userId from constructor
                 _navigateTo(
                   context,
-                  ProfileSettingsPage(userId: userId),
+                  ProfileSettingsPage(studentNumber: studentNumber), // updated
                 );
               },
             ),
@@ -80,13 +79,13 @@ class HomePage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
+            const Text(
               'Welcome to StallPass!',
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
             Text(
-              'Logged in as user ID: $userId',
+              'Logged in as: $studentNumber',
               style: const TextStyle(fontSize: 16),
             ),
           ],
@@ -103,3 +102,4 @@ class HomePage extends StatelessWidget {
     );
   }
 }
+

@@ -3,9 +3,9 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class ProfileSettingsPage extends StatefulWidget {
-  final int userId;
+  final String studentNumber; // Use student number instead of userId
 
-  const ProfileSettingsPage({super.key, required this.userId});
+  const ProfileSettingsPage({super.key, required this.studentNumber});
 
   @override
   State<ProfileSettingsPage> createState() => _ProfileSettingsPageState();
@@ -32,7 +32,7 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
     setState(() => _isLoading = true);
 
     try {
-      final url = "http://10.0.2.2:3000/user/${widget.userId}";
+      final url = "http://10.0.2.2:3000/user/${widget.studentNumber}";
       final response = await http.get(Uri.parse(url));
 
       if (response.statusCode == 200) {
@@ -46,7 +46,8 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
           _isLoading = false;
         });
       } else {
-        throw Exception("Failed to load user (status: ${response.statusCode})");
+        throw Exception(
+            "Failed to load user (status: ${response.statusCode})");
       }
     } catch (e) {
       setState(() => _isLoading = false);
@@ -61,7 +62,7 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
 
     try {
       final response = await http.put(
-        Uri.parse("http://10.0.2.2:3000/user/${widget.userId}"),
+        Uri.parse("http://10.0.2.2:3000/user/${widget.studentNumber}"),
         headers: {"Content-Type": "application/json"},
         body: json.encode({
           "full_name": _nameController.text,
@@ -113,31 +114,31 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
         backgroundColor: const Color(0xFF3F51B5),
         title: const Text("Profile Settings"),
       ),
-      body: Form(
-        key: _formKey,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 25.0),
-          child: Column(
-            children: [
-              const SizedBox(height: 20),
-              const Icon(Icons.person, size: 80, color: Color(0xFF3F51B5)),
-              const SizedBox(height: 20),
-              Expanded(
-                child: SingleChildScrollView(
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 25.0),
+        child: Column(
+          children: [
+            const SizedBox(height: 20),
+            const Icon(Icons.person, size: 80, color: Color(0xFF3F51B5)),
+            const SizedBox(height: 20),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Form(
+                  key: _formKey,
                   child: Column(
                     children: [
                       TextFormField(
                         controller: _nameController,
                         enabled: _isEditing,
-                        decoration: _inputDecoration("Full Name", Icons.person),
+                        decoration:
+                        _inputDecoration("Full Name", Icons.person),
                         validator: (value) =>
                         value!.isEmpty ? "Name cannot be empty" : null,
                       ),
                       const SizedBox(height: 15),
-
                       TextFormField(
                         controller: _studentController,
-                        enabled: false,
+                        enabled: false, // student number cannot be edited
                         decoration: _inputDecoration(
                             "Student Number", Icons.badge),
                       ),
@@ -184,8 +185,10 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
                   ),
                 ),
               ),
-
-              SizedBox(
+            ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 20.0),
+              child: SizedBox(
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
@@ -201,17 +204,17 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30)),
                   ),
-                  child: Text(_isEditing ? "Save" : "Edit",
-                      style: const TextStyle(fontSize: 18, color: Colors.black)),
+                  child: Text(
+                    _isEditing ? "Save" : "Edit",
+                    style: const TextStyle(fontSize: 18, color: Colors.black),
+                  ),
                 ),
               ),
-              const SizedBox(height: 20),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
-
 
