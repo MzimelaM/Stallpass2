@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'AttendancePage.dart';
-import 'DepartmentAnnoucementsPage.dart';
 import 'NotificationPage.dart';
 import 'SuccessPage.dart';
 import 'ProfileSettingsPage.dart';
@@ -39,12 +38,7 @@ class HomePage extends StatelessWidget {
                 ),
               ),
             ),
-            ListTile(
-              title: const Text('Department Announcement'),
-              onTap: () {
-                _navigateTo(context, const DepartmentAnnouncementsPage());
-              },
-            ),
+
             ListTile(
               title: const Text('Notifications'),
               onTap: () {
