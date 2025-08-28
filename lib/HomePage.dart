@@ -5,8 +5,9 @@ import 'SuccessPage.dart';
 import 'ProfileSettingsPage.dart';
 import 'ScanQrCode.dart';
 
-class HomePage extends StatelessWidget { 
-  const HomePage({super.key});
+class HomePage extends StatelessWidget {
+  final String studentNumber; // Passed from login
+  const HomePage({super.key, required this.studentNumber});
 
   @override
   Widget build(BuildContext context) {
@@ -41,37 +42,32 @@ class HomePage extends StatelessWidget {
 
             ListTile(
               title: const Text('Notifications'),
-              onTap: () {
-                _navigateTo(context, const NotificationPage());
-              },
+              onTap: () => _navigateTo(context, const NotificationPage()),
             ),
             ListTile(
               title: const Text('Success Page'),
-              onTap: () {
-                _navigateTo(context, const SuccessPage());
-              },
+              onTap: () => _navigateTo(context, const SuccessPage()),
             ),
             ListTile(
               title: const Text('Attendance Profile'),
-              onTap: () {
-                _navigateTo(context, const AttendancePage());
-              },
+              onTap: () => _navigateTo(
+                context,
+                AttendancePage(studentNumber: studentNumber), // passes studentNumber ✅
+              ),
             ),
             ListTile(
               title: const Text('Profile Settings'),
-              onTap: () {
-                _navigateTo(context, const ProfileSettingsPage());
-              },
-            ),ListTile(
+              onTap: () => _navigateTo(context, ProfileSettingsPage(studentNumber: studentNumber)),
+            ),
+            ListTile(
               leading: const Icon(Icons.qr_code_scanner, color: Color(0xFF3F51B5)),
               title: const Text('Scan QR Code'),
               onTap: () {
-                // Make sure studentNumber is defined in this page (from login or stored session)
-                String studentNumber = "2023001"; // Example, replace with actual logged-in student
+                Navigator.pop(context); // Close drawer
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => QRScannerPage(studentNumber: studentNumber), // camelCase!
+                    builder: (_) => QRScannerPage(studentNumber: studentNumber), // passes studentNumber ✅
                   ),
                 );
               },
@@ -106,7 +102,7 @@ class HomePage extends StatelessWidget {
   }
 
   void _navigateTo(BuildContext context, Widget page) {
-    Navigator.pop(context);
+    Navigator.pop(context); // close drawer
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => page),

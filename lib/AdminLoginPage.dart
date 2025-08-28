@@ -104,9 +104,9 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                 child: ElevatedButton(
                   onPressed: () {
                     Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) => const EventManagementPage()), // ✅ FIXED
+                     context,
+                     MaterialPageRoute(
+                          builder: (_) => const EventsManagementPage()),
                     );
                   },
                   style: ElevatedButton.styleFrom(
@@ -170,3 +170,6 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
     );
   }
 }
+
+
+
