@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'ScanQrCode.dart';
 
 class AttendancePage extends StatefulWidget {
   final String studentNumber;
@@ -22,7 +23,8 @@ class _AttendancePageState extends State<AttendancePage> {
 
   Future<void> fetchEvents() async {
     try {
-      var url = Uri.parse("http://10.0.2.2:3000/attendance/${widget.studentNumber}");
+      var url =
+      Uri.parse("http://10.0.2.2:3000/attendance/${widget.studentNumber}");
       var response = await http.get(url);
 
       if (response.statusCode == 200) {
@@ -39,35 +41,29 @@ class _AttendancePageState extends State<AttendancePage> {
     }
   }
 
-  Future<void> confirmAttendance(String eventCode) async {
-    try {
-      var url = Uri.parse("http://10.0.2.2:3000/confirm_attendance");
-      var response = await http.post(
-        url,
-        headers: {"Content-Type": "application/json"},
-        body: json.encode({
-          "student_number": widget.studentNumber,
-          "event_code": eventCode,
-        }),
-      );
-
-      var data = json.decode(response.body);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(data["message"] ?? "Attendance confirmed")),
-      );
-
-      // Refresh the events list
-      fetchEvents();
-    } catch (e) {
-      print("Error confirming attendance: $e");
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Attendance")),
+      appBar: AppBar(
+        title: const Text("Attendance"),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.qr_code_scanner),
+            onPressed: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) =>
+                      QRScannerPage(studentNumber: widget.studentNumber),
+                ),
+              );
+              if (result == true) {
+                fetchEvents(); // refresh list after scanning
+              }
+            },
+          ),
+        ],
+      ),
       body: loading
           ? const Center(child: CircularProgressIndicator())
           : ListView.builder(
@@ -78,14 +74,18 @@ class _AttendancePageState extends State<AttendancePage> {
             margin: const EdgeInsets.all(8),
             child: ListTile(
               title: Text(event["event_name"]),
-              subtitle: Text("Code: ${event["event_code"]} | "
-                  "Date: ${event["event_date"].replaceAll('T', ' ')} | "
-                  "Status: ${event["status"]}"),
-              trailing: ElevatedButton(
-                onPressed: event["status"] == "Present"
-                    ? null
-                    : () => confirmAttendance(event["event_code"]),
-                child: const Text("Confirm"),
+              subtitle: Text(
+                  "Code: ${event["event_code"]} | Date: ${event["event_date"].replaceAll('T', ' ')}"),
+              trailing: Chip(
+                label: Text(
+                  event["status"],
+                  style: TextStyle(
+                    color: event["status"] == "Present"
+                        ? Colors.green
+                        : Colors.red,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
           );
