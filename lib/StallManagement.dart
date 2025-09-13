@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'StallScreen.dart';
 import 'dart:convert';
+import 'package:flutter/services.dart';
 
 class StallManagementPage extends StatefulWidget {
   final dynamic event;
@@ -12,101 +14,198 @@ class StallManagementPage extends StatefulWidget {
 }
 
 class _StallManagementPageState extends State<StallManagementPage> {
+  // State variables
+  int? _editingStallId;
+  final _formKey = GlobalKey<FormState>();
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _aboutController = TextEditingController();
   final TextEditingController _aimController = TextEditingController();
   final TextEditingController _scopeController = TextEditingController();
   final TextEditingController _lessonController = TextEditingController();
-  
   List<dynamic> _stalls = [];
   bool _isLoading = true;
   bool _showCreateForm = false;
-  String? _generatedQrCode;
-  int _selectedIndex = 1; // StallManagementPage index
+  bool _isCreating = false;
+  int _selectedIndex = 1;
+
+  // Helper methods
+  // Helper: build text field with validation
+  Widget _buildTextField(TextEditingController controller, String label, bool required, {int maxLines = 1}) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
+      ),
+      maxLines: maxLines,
+      validator: required
+          ? (value) {
+              if (value == null || value.trim().isEmpty) {
+                return '$label is required';
+              }
+              return null;
+            }
+          : null,
+      inputFormatters: [
+        FilteringTextInputFormatter.deny(RegExp(r'[<>]')),
+      ],
+      textInputAction: TextInputAction.next,
+    );
+  }
+
+
+  Future<void> _createStall() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() => _isCreating = true);
+    final url = Uri.parse('http://localhost:3000/events/${widget.event['event_id'] ?? widget.event['id']}/stalls');
+    final body = jsonEncode({
+      'title': _sanitize(_titleController.text),
+      'description': _sanitize(_descriptionController.text),
+      'about': _sanitize(_aboutController.text),
+      'aim': _sanitize(_aimController.text),
+      'scope': _sanitize(_scopeController.text),
+      'lesson': _sanitize(_lessonController.text),
+    });
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: body,
+      );
+      if (response.statusCode == 201) {
+        await fetchStalls();
+        _clearForm();
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => AlertDialog(
+            title: const Text('Stall Created'),
+            content: const Text('Do you want to add another stall to this event?'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  setState(() {
+                    _showCreateForm = true;
+                  });
+                  // Do NOT fetch stalls here
+                },
+                child: const Text('Yes'),
+              ),
+              TextButton(
+                onPressed: () async {
+                  Navigator.of(context).pop();
+                  setState(() {
+                    _showCreateForm = false;
+                  });
+                  await fetchStalls();
+                },
+                child: const Text('No'),
+              ),
+            ],
+          ),
+        );
+      } else {
+        final res = jsonDecode(response.body);
+        _showError("❌ Failed: ${res['error'] ?? 'Unknown error'}");
+      }
+    } catch (e) {
+      _showError("❌ Error: $e");
+    } finally {
+      setState(() => _isCreating = false);
+    }
+  }
+
+  Future<void> updateStall(int stallId) async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() => _isCreating = true);
+    final url = Uri.parse("http://localhost:3000/lecturer/stalls/$stallId");
+    final body = jsonEncode({
+      'title': _sanitize(_titleController.text),
+      'description': _sanitize(_descriptionController.text),
+      'about': _sanitize(_aboutController.text),
+      'aim': _sanitize(_aimController.text),
+      'scope': _sanitize(_scopeController.text),
+      'lesson': _sanitize(_lessonController.text),
+    });
+    try {
+      final response = await http.put(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: body,
+      );
+      if (response.statusCode == 200) {
+        _showSuccessDialog();
+        _clearForm();
+        await fetchStalls();
+      } else {
+        final res = jsonDecode(response.body);
+        _showError("❌ Failed: ${res['error'] ?? 'Unknown error'}");
+      }
+    } catch (e) {
+      _showError("❌ Error: $e");
+    } finally {
+      setState(() => _isCreating = false);
+    }
+  }
 
   @override
   void initState() {
     super.initState();
-    _fetchStalls();
+    _showCreateForm = true;
+    _isLoading = false;
+    // Do not fetch stalls on initial load
   }
 
-  Future<void> _fetchStalls() async {
+
+  Future<void> fetchStalls() async {
     setState(() => _isLoading = true);
-    
     try {
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:3000/events/${widget.event['id']}/stalls'),
+        Uri.parse('http://localhost:3000/events/${widget.event['event_id'] ?? widget.event['id']}/stalls'),
         headers: {'Content-Type': 'application/json'},
       );
-
       if (response.statusCode == 200) {
         setState(() {
           _stalls = json.decode(response.body);
-          _isLoading = false;
         });
       } else {
         throw Exception('Failed to load stalls: ${response.statusCode}');
       }
     } catch (e) {
+      _showError('Error fetching stalls: $e');
+    } finally {
       setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error fetching stalls: $e')),
-      );
     }
   }
+  // Removed stray code outside of methods. All logic is now inside methods.
 
-  Future<void> _createStall() async {
-    if (_titleController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Stall title is required')),
-      );
-      return;
-    }
 
-    final url = Uri.parse("http://10.0.2.2:3000/admin/stalls");
-    final body = jsonEncode({
-      'event_id': widget.event['id'],
-      'title': _titleController.text,
-      'description': _descriptionController.text,
-      'about': _aboutController.text,
-      'aim': _aimController.text,
-      'scope': _scopeController.text,
-      'lesson': _lessonController.text,
-      'streams': [],
-      'careers': [],
-      'resources': [],
-      'videos': [],
-    });
+  String _sanitize(String input) {
+    return input.replaceAll(RegExp(r'[<>]'), '');
+  }
 
-    try {
-      final response = await http.post(
-        url,
-        headers: {"Content-Type": "application/json"},
-        body: body,
-      );
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
 
-      if (response.statusCode == 201) {
-        final responseData = json.decode(response.body);
-        setState(() {
-          _generatedQrCode = responseData['qrCode'];
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("✅ Stall created successfully")),
-        );
-        _clearForm();
-        _fetchStalls();
-      } else {
-        final res = jsonDecode(response.body);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("❌ Failed: ${res['error'] ?? 'Unknown error'}")),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("❌ Error: $e")),
-      );
-    }
+  void _showSuccessDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Stall Created'),
+        content: const Text('Your stall was created successfully.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _clearForm() {
@@ -135,11 +234,18 @@ class _StallManagementPageState extends State<StallManagementPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Stalls - ${widget.event['title']}'),
+        title: Text('Stalls - ${widget.event['title'] ?? widget.event['event_name']}'),
         actions: [
           IconButton(
             icon: Icon(_showCreateForm ? Icons.close : Icons.add),
-            onPressed: () => setState(() => _showCreateForm = !_showCreateForm),
+            tooltip: _showCreateForm ? 'Close form' : 'Add stall',
+            onPressed: () {
+              setState(() {
+                _showCreateForm = !_showCreateForm;
+                _editingStallId = null;
+                _clearForm();
+              });
+            },
           ),
         ],
       ),
@@ -147,8 +253,8 @@ class _StallManagementPageState extends State<StallManagementPage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            if (_showCreateForm) _buildCreateForm(),
-            if (_generatedQrCode != null) _buildQrCodeDialog(),
+            if (_showCreateForm)
+              _buildCreateForm(),
             Expanded(
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator())
@@ -168,12 +274,37 @@ class _StallManagementPageState extends State<StallManagementPage> {
                               child: ListTile(
                                 title: Text(stall['title']),
                                 subtitle: Text(stall['description'] ?? 'No description'),
-                                trailing: const Icon(Icons.arrow_forward),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(Icons.edit),
+                                      tooltip: 'Edit Stall',
+                                      onPressed: () {
+                                        setState(() {
+                                          _showCreateForm = true;
+                                          _editingStallId = stall['stall_id'];
+                                          _titleController.text = stall['title'] ?? '';
+                                          _descriptionController.text = stall['description'] ?? '';
+                                          _aboutController.text = stall['about'] ?? '';
+                                          _aimController.text = stall['aim'] ?? '';
+                                          _scopeController.text = stall['scope'] ?? '';
+                                          _lessonController.text = stall['lesson'] ?? '';
+                                        });
+                                      },
+                                    ),
+                                  ],
+                                ),
                               ),
                             );
                           },
                         ),
             ),
+            if (_isCreating)
+              const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: LinearProgressIndicator(),
+              ),
           ],
         ),
       ),
@@ -196,123 +327,61 @@ class _StallManagementPageState extends State<StallManagementPage> {
       margin: const EdgeInsets.only(bottom: 16),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              "Create New Stall",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _titleController,
-              decoration: const InputDecoration(
-                labelText: "Stall Title*",
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _descriptionController,
-              decoration: const InputDecoration(
-                labelText: "Description",
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 2,
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _aboutController,
-              decoration: const InputDecoration(
-                labelText: "About",
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 3,
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _aimController,
-              decoration: const InputDecoration(
-                labelText: "Aim",
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 2,
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _scopeController,
-              decoration: const InputDecoration(
-                labelText: "Scope",
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 2,
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _lessonController,
-              decoration: const InputDecoration(
-                labelText: "Lesson",
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 2,
-            ),
-            const SizedBox(height: 16),
-            Row(
+        child: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: _createStall,
-                    child: const Text("Create Stall"),
-                  ),
+                Text(
+                  _editingStallId == null ? "Create New Stall" : "Edit Stall",
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: _clearForm,
-                    child: const Text("Cancel"),
-                  ),
+                const SizedBox(height: 16),
+                _buildTextField(_titleController, "Stall Title*", true, maxLines: 1),
+                const SizedBox(height: 12),
+                _buildTextField(_descriptionController, "Description", false, maxLines: 2),
+                const SizedBox(height: 12),
+                _buildTextField(_aboutController, "About", false, maxLines: 3),
+                const SizedBox(height: 12),
+                _buildTextField(_aimController, "Aim", false, maxLines: 2),
+                const SizedBox(height: 12),
+                _buildTextField(_scopeController, "Scope", false, maxLines: 2),
+                const SizedBox(height: 12),
+                _buildTextField(_lessonController, "Lesson", false, maxLines: 2),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: _isCreating
+                            ? null
+                            : () {
+                                if (_editingStallId == null) {
+                                  _createStall();
+                                } else {
+                                  updateStall(_editingStallId!);
+                                }
+                              },
+                        child: Text(_editingStallId == null ? "Create Stall" : "Update Stall"),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: _isCreating ? null : _clearForm,
+                        child: const Text("Cancel"),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildQrCodeDialog() {
-    return AlertDialog(
-      title: const Text("Stall Created Successfully"),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Text("QR Code Generated:"),
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              _generatedQrCode!,
-              style: const TextStyle(fontFamily: 'Monospace', fontSize: 12),
-            ),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            "Share this QR code with attendees to scan for attendance",
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 12, color: Colors.grey),
-          ),
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => setState(() => _generatedQrCode = null),
-          child: const Text("OK"),
-        ),
-      ],
-    );
-  }
+  // QR code dialog removed
 }

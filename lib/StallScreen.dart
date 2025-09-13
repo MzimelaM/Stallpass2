@@ -234,6 +234,7 @@ class StallScreen extends StatelessWidget {
   }
 
   void _showStallInfo(BuildContext context, dynamic stall) {
+    stall['attended'] = true;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -243,97 +244,117 @@ class StallScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (stall['description'] != null && stall['description'].toString().isNotEmpty) ...[
-                const Text(
-                  'Description:',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+              if (stall['attended'] == true)
+                Row(
+                  children: [
+                    const Icon(Icons.check_circle, color: Colors.green, size: 18),
+                    const SizedBox(width: 6),
+                    const Text('Attended', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+                  ],
                 ),
-                const SizedBox(height: 4),
-                Text(stall['description'].toString()),
-                const SizedBox(height: 16),
-              ],
-              
-              if (stall['about'] != null && stall['about'].toString().isNotEmpty) ...[
-                const Text(
-                  'About:',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+              if (stall['finished'] == true)
+                Row(
+                  children: [
+                    const Icon(Icons.flag, color: Colors.blue, size: 18),
+                    const SizedBox(width: 6),
+                    const Text('Finished', style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
+                  ],
                 ),
-                const SizedBox(height: 4),
-                Text(stall['about'].toString()),
-                const SizedBox(height: 16),
-              ],
-              
-              if (stall['aim'] != null && stall['aim'].toString().isNotEmpty) ...[
-                const Text(
-                  'Aim:',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+              if (stall['description'] != null && stall['description'].toString().isNotEmpty)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Description:', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 4),
+                    Text(stall['description'].toString()),
+                    const SizedBox(height: 16),
+                  ],
                 ),
-                const SizedBox(height: 4),
-                Text(stall['aim'].toString()),
-                const SizedBox(height: 16),
-              ],
-              
-              if (stall['scope'] != null && stall['scope'].toString().isNotEmpty) ...[
-                const Text(
-                  'Scope:',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+              if (stall['about'] != null && stall['about'].toString().isNotEmpty)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('About:', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 4),
+                    Text(stall['about'].toString()),
+                    const SizedBox(height: 16),
+                  ],
                 ),
-                const SizedBox(height: 4),
-                Text(stall['scope'].toString()),
-                const SizedBox(height: 16),
-              ],
-              
-              if (stall['lesson'] != null && stall['lesson'].toString().isNotEmpty) ...[
-                const Text(
-                  'Lesson:',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+              if (stall['aim'] != null && stall['aim'].toString().isNotEmpty)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Aim:', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 4),
+                    Text(stall['aim'].toString()),
+                    const SizedBox(height: 16),
+                  ],
                 ),
-                const SizedBox(height: 4),
-                Text(stall['lesson'].toString()),
-                const SizedBox(height: 16),
-              ],
-              
-              if (stall['activity_type'] != null && stall['activity_type'].toString().isNotEmpty) ...[
-                const Text(
-                  'Activity Type:',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+              if (stall['scope'] != null && stall['scope'].toString().isNotEmpty)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Scope:', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 4),
+                    Text(stall['scope'].toString()),
+                    const SizedBox(height: 16),
+                  ],
                 ),
-                const SizedBox(height: 4),
-                Chip(
-                  label: Text(stall['activity_type'].toString()),
-                  backgroundColor: Colors.blue.shade50,
+              if (stall['lesson'] != null && stall['lesson'].toString().isNotEmpty)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Lesson:', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 4),
+                    Text(stall['lesson'].toString()),
+                    const SizedBox(height: 16),
+                  ],
                 ),
-              ],
-
-              // Add QR code information if available
-              if (stall['qr_code'] != null && stall['qr_code'].toString().isNotEmpty) ...[
-                const SizedBox(height: 16),
-                const Text(
-                  'QR Code:',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+              if (stall['activity_type'] != null && stall['activity_type'].toString().isNotEmpty)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Activity Type:', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 4),
+                    Chip(
+                      label: Text(stall['activity_type'].toString()),
+                      backgroundColor: Colors.blue.shade50,
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 4),
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey.shade300),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    stall['qr_code'].toString(),
-                    style: const TextStyle(fontFamily: 'Monospace', fontSize: 12),
-                  ),
+              if (stall['qr_code'] != null && stall['qr_code'].toString().isNotEmpty)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 16),
+                    const Text('QR Code:', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 4),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey.shade300),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        stall['qr_code'].toString(),
+                        style: const TextStyle(fontFamily: 'Monospace', fontSize: 12),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text('Scan this code at the stall to mark attendance', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                  ],
                 ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Scan this code at the stall to mark attendance',
-                  style: TextStyle(fontSize: 12, color: Colors.grey),
-                ),
-              ],
             ],
           ),
         ),
         actions: [
+          TextButton(
+            onPressed: () {
+              stall['finished'] = true;
+              Navigator.pop(context);
+            },
+            child: const Text('Mark as Finished'),
+          ),
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Close'),

@@ -23,7 +23,8 @@ class _SignUpPageState extends State<SignUpPage> {
     setState(() => _isLoading = true);
 
     try {
-      final uri = Uri.parse("http://10.0.2.2:3000/signup");
+      //final uri = Uri.parse("http://10.0.2.2:3000/signup");
+      final uri = Uri.parse("http://localhost:3000/signup");
       final response = await http.post(
         uri,
         headers: {"Content-Type": "application/json"},

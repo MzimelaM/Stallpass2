@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'StallManagement.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -33,7 +34,7 @@ class _EventsManagementPageState extends State<EventsManagementPage> {
   Future<void> fetchEvents() async {
     setState(() => loading = true);
     try {
-      var url = Uri.parse("http://10.0.2.2:3000/get_events");
+      var url = Uri.parse('http://localhost:3000/get_events');
       var response = await http.get(url);
 
       if (response.statusCode == 200) {
@@ -71,7 +72,7 @@ class _EventsManagementPageState extends State<EventsManagementPage> {
     String eventDate = formatDateTimeForMySQL(_selectedDateTime!);
 
     try {
-      var url = Uri.parse("http://10.0.2.2:3000/create_event");
+      var url = Uri.parse("http://localhost:3000/create_event");
       var response = await http.post(
         url,
         headers: {"Content-Type": "application/json"},
@@ -92,6 +93,13 @@ class _EventsManagementPageState extends State<EventsManagementPage> {
         _selectedDateTime = null;
 
         await fetchEvents();
+          // Navigate to StallManagementPage after event creation
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => StallManagementPage(event: data["event"]),
+            ),
+          );
       } else {
         var error = json.decode(response.body);
         ScaffoldMessenger.of(context)
