@@ -35,7 +35,7 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       final response = await http.post(
-        Uri.parse("http://10.0.2.2:3000/login"), // backend URL
+        Uri.parse("http://10.0.2.2:3000/login"), // Your backend URL
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
           "student_number": studentNumber,
@@ -46,23 +46,24 @@ class _LoginPageState extends State<LoginPage> {
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = jsonDecode(response.body);
 
-        if (data.containsKey("student_number")) {
-          String studentNumber = data["student_number"].toString();
+        // ✅ Only allow login if student exists
+        if (data.containsKey("student")) {
+          String fetchedStudentNumber = data["student"]["student_number"].toString();
 
-          // save to AppState
+          // Save student number to AppState
           Provider.of<AppState>(context, listen: false)
-              .setStudentNumber(studentNumber);
+              .setStudentNumber(fetchedStudentNumber);
 
-          // go to HomePage
+          // Navigate to HomePage
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (_) => HomePage(studentNumber: studentNumber),
+              builder: (_) => HomePage(studentNumber: fetchedStudentNumber),
             ),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Login failed: student number missing")),
+            const SnackBar(content: Text("Invalid student number or password")),
           );
         }
       } else {
@@ -86,7 +87,9 @@ class _LoginPageState extends State<LoginPage> {
       filled: true,
       fillColor: Colors.white,
       border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),
+        borderRadius: BorderRadius.circular(30),
+        borderSide: BorderSide.none,
+      ),
     );
   }
 
@@ -97,8 +100,9 @@ class _LoginPageState extends State<LoginPage> {
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF3F51B5),
-          shape:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+          ),
         ),
         onPressed: _isLoading ? null : onPressed,
         child: _isLoading
@@ -122,9 +126,10 @@ class _LoginPageState extends State<LoginPage> {
               const Text(
                 "STALL PASS",
                 style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF3F51B5)),
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF3F51B5),
+                ),
               ),
               const Text(
                 "SCAN.ENGAGE.SUCCEED",
@@ -161,14 +166,17 @@ class _LoginPageState extends State<LoginPage> {
               _purpleButton("Sign In", () => loginUser(context)),
               const SizedBox(height: 15),
               GestureDetector(
-                onTap: () => Navigator.push(context,
-                    MaterialPageRoute(builder: (_) => const AdminLoginPage())),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AdminLoginPage()),
+                ),
                 child: const Text(
                   "Sign in as Admin",
                   style: TextStyle(
-                      color: Colors.redAccent,
-                      fontWeight: FontWeight.w600,
-                      decoration: TextDecoration.underline),
+                    color: Colors.redAccent,
+                    fontWeight: FontWeight.w600,
+                    decoration: TextDecoration.underline,
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
@@ -178,14 +186,15 @@ class _LoginPageState extends State<LoginPage> {
                   const Text("Don’t have an account? "),
                   GestureDetector(
                     onTap: () => Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => const SignUpPage())),
+                      context,
+                      MaterialPageRoute(builder: (_) => const SignUpPage()),
+                    ),
                     child: const Text(
                       "Sign Up",
                       style: TextStyle(
-                          color: Color(0xFF3F51B5),
-                          fontWeight: FontWeight.bold),
+                        color: Color(0xFF3F51B5),
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ],

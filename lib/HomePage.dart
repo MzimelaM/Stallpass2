@@ -6,7 +6,7 @@ import 'ProfileSettingsPage.dart';
 import 'ScanQrCode.dart';
 
 class HomePage extends StatelessWidget { 
-  const HomePage({super.key});
+  const HomePage({super.key, required String studentNumber});
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +60,7 @@ class HomePage extends StatelessWidget {
             ListTile(
               title: const Text('Profile Settings'),
               onTap: () {
-                _navigateTo(context, const ProfileSettingsPage());
+                _navigateTo(context, const ProfileSettingsPage(studentNumber: '',));
               },
             ),ListTile(
               leading: const Icon(Icons.qr_code_scanner, color: Color(0xFF3F51B5)),

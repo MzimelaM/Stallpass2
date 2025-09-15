@@ -10,7 +10,7 @@ class AdminLoginPage extends StatefulWidget {
 }
 
 class _AdminLoginPageState extends State<AdminLoginPage> {
-  final TextEditingController emailController = TextEditingController();
+  final TextEditingController staffIdController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   bool obscurePassword = true;
 
@@ -52,18 +52,19 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                       color: Colors.black)),
               const SizedBox(height: 20),
 
-              // Email
-              TextField(
-                controller: emailController,
-                decoration: InputDecoration(
-                  hintText: "Email",
-                  prefixIcon: const Icon(Icons.email),
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(30)),
-                  filled: true,
-                  fillColor: Colors.white,
-                ),
-              ),
+              // Staff_Id
+          TextField(
+            controller: staffIdController,
+            decoration: InputDecoration(
+              hintText: "Staff ID",
+              prefixIcon: const Icon(Icons.badge), // optional icon
+              border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30)),
+              filled: true,
+              fillColor: Colors.white,
+            ),
+          ),
+
               const SizedBox(height: 15),
 
               // Password
@@ -106,7 +107,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                          builder: (_) => const EventManagementPage()), // ✅ FIXED
+                          builder: (_) => const EventsManagementPage()), // ✅ FIXED
                     );
                   },
                   style: ElevatedButton.styleFrom(
