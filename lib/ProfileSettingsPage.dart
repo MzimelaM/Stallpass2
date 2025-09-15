@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'LoginPage.dart';
 
 class ProfileSettingsPage extends StatefulWidget {
-  final String studentNumber; // Use student number instead of userId
+  final String studentNumber;
 
   const ProfileSettingsPage({super.key, required this.studentNumber});
 
@@ -17,10 +18,12 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
   final TextEditingController _studentController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
 
   bool _isEditing = false;
   bool _isLoading = true;
   bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
 
   @override
   void initState() {
@@ -43,11 +46,11 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
           _studentController.text = user['student_number'] ?? '';
           _emailController.text = user['email'] ?? '';
           _passwordController.text = user['password'] ?? '';
+          _confirmPasswordController.text = user['password'] ?? '';
           _isLoading = false;
         });
       } else {
-        throw Exception(
-            "Failed to load user (status: ${response.statusCode})");
+        throw Exception("Failed to load user (status: ${response.statusCode})");
       }
     } catch (e) {
       setState(() => _isLoading = false);
@@ -89,12 +92,13 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
 
   InputDecoration _inputDecoration(String hint, IconData icon) {
     return InputDecoration(
-      hintText: hint,
-      prefixIcon: Icon(icon),
+      labelText: hint,
+      prefixIcon: Icon(icon, size: 20), // smaller icons
       filled: true,
       fillColor: Colors.white,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12), // smaller padding
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(30),
+        borderRadius: BorderRadius.circular(25), // slightly smaller radius
         borderSide: BorderSide.none,
       ),
     );
@@ -112,56 +116,59 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
       backgroundColor: const Color(0xFFD9D6F5),
       appBar: AppBar(
         backgroundColor: const Color(0xFF3F51B5),
-        title: const Text("Profile Settings"),
+        title: const Text("Profile Settings", style: TextStyle(fontSize: 18)), // smaller title
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 25.0),
+      body: SafeArea(
         child: Column(
           children: [
-            const SizedBox(height: 20),
-            const Icon(Icons.person, size: 80, color: Color(0xFF3F51B5)),
-            const SizedBox(height: 20),
             Expanded(
               child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Form(
                   key: _formKey,
                   child: Column(
                     children: [
+                      const SizedBox(height: 15),
+                      const Icon(Icons.person, size: 60, color: Color(0xFF3F51B5)), // smaller icon
+                      const SizedBox(height: 15),
                       TextFormField(
                         controller: _nameController,
                         enabled: _isEditing,
-                        decoration:
-                        _inputDecoration("Full Name", Icons.person),
+                        decoration: _inputDecoration("Full Name", Icons.person),
+                        style: const TextStyle(fontSize: 14),
                         validator: (value) =>
                         value!.isEmpty ? "Name cannot be empty" : null,
                       ),
-                      const SizedBox(height: 15),
+                      const SizedBox(height: 12),
                       TextFormField(
                         controller: _studentController,
-                        enabled: false, // student number cannot be edited
-                        decoration: _inputDecoration(
-                            "Student Number", Icons.badge),
+                        enabled: false,
+                        decoration: _inputDecoration("Student Number", Icons.badge),
+                        style: const TextStyle(fontSize: 14),
                       ),
-                      const SizedBox(height: 15),
+                      const SizedBox(height: 12),
                       TextFormField(
                         controller: _emailController,
                         enabled: _isEditing,
                         decoration: _inputDecoration("Email", Icons.email),
+                        style: const TextStyle(fontSize: 14),
                         validator: (value) =>
                         !value!.contains('@') ? "Enter a valid email" : null,
                       ),
-                      const SizedBox(height: 15),
+                      const SizedBox(height: 12),
                       TextFormField(
                         controller: _passwordController,
                         obscureText: _obscurePassword,
                         enabled: _isEditing,
+                        style: const TextStyle(fontSize: 14),
                         decoration: InputDecoration(
-                          hintText: "Password",
-                          prefixIcon: const Icon(Icons.lock),
+                          labelText: "Password",
+                          prefixIcon: const Icon(Icons.lock, size: 20),
                           filled: true,
                           fillColor: Colors.white,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(30),
+                            borderRadius: BorderRadius.circular(25),
                             borderSide: BorderSide.none,
                           ),
                           suffixIcon: IconButton(
@@ -169,9 +176,10 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
                               _obscurePassword
                                   ? Icons.visibility
                                   : Icons.visibility_off,
+                              size: 20,
                             ),
-                            onPressed: () => setState(
-                                    () => _obscurePassword = !_obscurePassword),
+                            onPressed: () =>
+                                setState(() => _obscurePassword = !_obscurePassword),
                           ),
                         ),
                         validator: (value) {
@@ -181,34 +189,99 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
                           return null;
                         },
                       ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _confirmPasswordController,
+                        obscureText: _obscureConfirmPassword,
+                        enabled: _isEditing,
+                        style: const TextStyle(fontSize: 14),
+                        decoration: InputDecoration(
+                          labelText: "Confirm Password",
+                          prefixIcon: const Icon(Icons.lock, size: 20),
+                          filled: true,
+                          fillColor: Colors.white,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(25),
+                            borderSide: BorderSide.none,
+                          ),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _obscureConfirmPassword
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                              size: 20,
+                            ),
+                            onPressed: () => setState(() =>
+                            _obscureConfirmPassword = !_obscureConfirmPassword),
+                          ),
+                        ),
+                        validator: (value) {
+                          if (_isEditing && value != _passwordController.text) {
+                            return "Passwords do not match";
+                          }
+                          return null;
+                        },
+                      ),
                     ],
                   ),
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 20.0),
-              child: SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: () {
-                    if (_isEditing) {
-                      _updateUser();
-                    } else {
-                      setState(() => _isEditing = true);
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF3F51B5),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30)),
+            // Buttons at bottom
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              child: Column(
+                children: [
+                  SizedBox(
+                    width: double.infinity,
+                    height: 45, // smaller button height
+                    child: ElevatedButton(
+                      onPressed: () {
+                        if (_isEditing) {
+                          _updateUser();
+                        } else {
+                          setState(() {
+                            _isEditing = true;
+                            _confirmPasswordController.text =
+                                _passwordController.text;
+                          });
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF3F51B5),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(25)),
+                      ),
+                      child: Text(
+                        _isEditing ? "Save" : "Edit",
+                        style: const TextStyle(fontSize: 16, color: Colors.black),
+                      ),
+                    ),
                   ),
-                  child: Text(
-                    _isEditing ? "Save" : "Edit",
-                    style: const TextStyle(fontSize: 18, color: Colors.black),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 45,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(builder: (_) => const LoginPage()),
+                              (route) => false,
+                        );
+                      },
+                      icon: const Icon(Icons.logout, color: Colors.black, size: 20),
+                      label: const Text("Logout", style: TextStyle(fontSize: 16, color: Colors.black)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF3F51B5),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
             ),
           ],
@@ -217,4 +290,6 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
     );
   }
 }
+
+
 

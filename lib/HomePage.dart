@@ -16,7 +16,12 @@ class HomePage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: const Color(0xFFD9D6F5),
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black),
+        iconTheme: const IconThemeData(color: Colors.black), // hamburger menu color
+        automaticallyImplyLeading: true, // ensures menu icon is shown
+        title: const Text(
+          'Home',
+          style: TextStyle(color: Colors.black), // optional title
+        ),
       ),
       drawer: Drawer(
         backgroundColor: const Color(0xFFD9D6F5),
@@ -39,7 +44,6 @@ class HomePage extends StatelessWidget {
                 ),
               ),
             ),
-
             ListTile(
               title: const Text('Notifications'),
               onTap: () => _navigateTo(context, const NotificationPage()),
@@ -52,7 +56,7 @@ class HomePage extends StatelessWidget {
               title: const Text('Attendance Profile'),
               onTap: () => _navigateTo(
                 context,
-                AttendancePage(studentNumber: studentNumber), // passes studentNumber ✅
+                AttendancePage(studentNumber: studentNumber),
               ),
             ),
             ListTile(
@@ -67,7 +71,7 @@ class HomePage extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => QRScannerPage(studentNumber: studentNumber), // passes studentNumber ✅
+                    builder: (_) => QRScannerPage(studentNumber: studentNumber),
                   ),
                 );
               },
