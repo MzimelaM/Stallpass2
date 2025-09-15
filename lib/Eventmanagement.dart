@@ -1,173 +1,263 @@
 import 'package:flutter/material.dart';
+import 'StallManagement.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'Eventstatistics.dart';
-import 'Dashboard.dart';
 
-
-
-class EventManagementPage extends StatefulWidget {
-  const EventManagementPage({super.key});
+class EventsManagementPage extends StatefulWidget {
+  const EventsManagementPage({super.key});
 
   @override
-  State<EventManagementPage> createState() => _EventManagementPageState();
+  State<EventsManagementPage> createState() => _EventsManagementPageState();
 }
 
-class _EventManagementPageState extends State<EventManagementPage> {
-  final TextEditingController titleController = TextEditingController();
-  final TextEditingController descriptionController = TextEditingController();
-  DateTime? selectedDate;
-  TimeOfDay? selectedTime;
+class _EventsManagementPageState extends State<EventsManagementPage> {
+  final TextEditingController _nameController = TextEditingController();
+  DateTime? _selectedDateTime;
 
-  Future<void> _pickDate() async {
-    DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2024),
-      lastDate: DateTime(2100),
-    );
-    if (picked != null) setState(() => selectedDate = picked);
+  List events = [];
+  bool loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchEvents();
   }
 
-  Future<void> _pickTime() async {
-    TimeOfDay? picked =
-    await showTimePicker(context: context, initialTime: TimeOfDay.now());
-    if (picked != null) setState(() => selectedTime = picked);
+  // Format DateTime to MySQL DATETIME string
+  String formatDateTimeForMySQL(DateTime dt) {
+    return "${dt.year.toString().padLeft(4, '0')}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')} "
+        "${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}:00";
   }
 
-  Future<void> _saveEvent() async {
-    if (titleController.text.isEmpty ||
-        selectedDate == null ||
-        selectedTime == null) {
+  /// Fetch all events from backend
+  Future<void> fetchEvents() async {
+    setState(() => loading = true);
+    try {
+      var url = Uri.parse('http://localhost:3000/get_events');
+      var response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        List fetchedEvents = json.decode(response.body);
+
+        // Sort by date & time
+        fetchedEvents.sort((a, b) =>
+            DateTime.parse(a["event_date"]).compareTo(DateTime.parse(b["event_date"])));
+
+        setState(() {
+          events = fetchedEvents;
+        });
+      }
+    } catch (e) {
+      print("Error fetching events: $e");
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please fill in all required fields")),
+        SnackBar(content: Text("Error fetching events: $e")),
+      );
+    } finally {
+      setState(() => loading = false);
+    }
+  }
+
+  /// Create new event
+  Future<void> createEvent() async {
+    String name = _nameController.text.trim();
+
+    if (name.isEmpty || _selectedDateTime == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please enter event name and date & time")),
       );
       return;
     }
 
-    final eventDate =
-        "${selectedDate!.year}-${selectedDate!.month.toString().padLeft(2, '0')}-${selectedDate!.day.toString().padLeft(2, '0')}";
-    final eventTime =
-        "${selectedTime!.hour.toString().padLeft(2, '0')}:${selectedTime!.minute.toString().padLeft(2, '0')}:00";
-
-    final url = Uri.parse("http://10.0.2.2:3000/events"); // use localhost for emulator
-    final body = jsonEncode({
-      "title": titleController.text,
-      "event_date": eventDate,
-      "event_time": eventTime,
-      "description": descriptionController.text,
-    });
+    String eventDate = formatDateTimeForMySQL(_selectedDateTime!);
 
     try {
-      final response = await http.post(
+      var url = Uri.parse("http://localhost:3000/create_event");
+      var response = await http.post(
         url,
         headers: {"Content-Type": "application/json"},
-        body: body,
+        body: json.encode({
+          "event_name": name,
+          "event_date": eventDate,
+        }),
       );
 
       if (response.statusCode == 201) {
+        var data = json.decode(response.body);
+
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("✅ Event added successfully")),
+          SnackBar(content: Text("Event Created: ${data["event"]["event_code"]}")),
         );
-        titleController.clear();
-        descriptionController.clear();
-        setState(() {
-          selectedDate = null;
-          selectedTime = null;
-        });
+
+        _nameController.clear();
+        _selectedDateTime = null;
+
+        await fetchEvents();
+          // Navigate to StallManagementPage after event creation
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => StallManagementPage(event: data["event"]),
+            ),
+          );
       } else {
-        final res = jsonDecode(response.body);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content:
-              Text("❌ Failed: ${res['error'] ?? 'Unknown error'}")),
-        );
+        var error = json.decode(response.body);
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text("Error: ${error['message']}")));
       }
     } catch (e) {
+      print("Error creating event: $e");
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("❌ Error: $e")),
+        SnackBar(content: Text("Error creating event: $e")),
       );
     }
   }
 
-  int _selectedIndex = 1; // EventManagementPage index
+  /// Pick date and time
+  Future<void> _pickDateTime() async {
+    DateTime now = DateTime.now();
 
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-    if (index == 0) {
-      Navigator.pushReplacementNamed(context, '/dashboard');
-    } else if (index == 1) {
-      // stay on EventManagementPage
-    } else if (index == 2) {
-      Navigator.pushReplacementNamed(context, '/stats');
+    final pickedDate = await showDatePicker(
+      context: context,
+      initialDate: now,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2100),
+    );
+
+    if (pickedDate != null) {
+      final pickedTime = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.now(),
+      );
+
+      if (pickedTime != null) {
+        setState(() {
+          _selectedDateTime = DateTime(
+            pickedDate.year,
+            pickedDate.month,
+            pickedDate.day,
+            pickedTime.hour,
+            pickedTime.minute,
+          );
+        });
+      }
     }
+  }
+
+  /// Get upcoming events
+  List getUpcomingEvents() {
+    DateTime now = DateTime.now();
+    List upcoming = events.where((e) => DateTime.parse(e["event_date"]).isAfter(now)).toList();
+    upcoming.sort((a, b) =>
+        DateTime.parse(a["event_date"]).compareTo(DateTime.parse(b["event_date"])));
+    return upcoming;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Event Management")),
+      appBar: AppBar(title: const Text("Manage Events")),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
+            // Event name
             TextField(
-              controller: titleController,
-              decoration: const InputDecoration(labelText: "Event Title"),
-            ),
-            TextField(
-              controller: descriptionController,
-              decoration: const InputDecoration(labelText: "Description"),
+              controller: _nameController,
+              decoration: const InputDecoration(
+                labelText: "Event Name",
+                border: OutlineInputBorder(),
+              ),
             ),
             const SizedBox(height: 10),
+
+            // Date & Time picker
             Row(
               children: [
                 Expanded(
-                  child: Text(selectedDate == null
-                      ? "Pick a date"
-                      : "Date: ${selectedDate!.toLocal()}".split(" ")[0]),
+                  child: Text(
+                    _selectedDateTime == null
+                        ? "No Date & Time Selected"
+                        : "Date & Time: ${_selectedDateTime!.toLocal().toString().split('.')[0]}",
+                  ),
                 ),
                 IconButton(
                   icon: const Icon(Icons.calendar_today),
-                  onPressed: _pickDate,
-                )
+                  onPressed: _pickDateTime,
+                ),
               ],
             ),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(selectedTime == null
-                      ? "Pick a time"
-                      : "Time: ${selectedTime!.format(context)}"),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.access_time),
-                  onPressed: _pickTime,
-                )
-              ],
+            const SizedBox(height: 10),
+
+            // Create event
+            ElevatedButton(
+              onPressed: createEvent,
+              child: const Text("Create Event & Generate QR"),
+            ),
+            const SizedBox(height: 10),
+
+            // View upcoming events
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  events = getUpcomingEvents();
+                });
+              },
+              child: const Text("View Upcoming Events"),
             ),
             const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _saveEvent,
-              child: const Text("Save Event"),
+
+            // Event list
+            loading
+                ? const CircularProgressIndicator()
+                : Expanded(
+              child: events.isEmpty
+                  ? const Center(child: Text("No events found"))
+                  : ListView.builder(
+                itemCount: events.length,
+                itemBuilder: (context, index) {
+                  var event = events[index];
+                  String code = event["event_code"];
+                  return Card(
+                    margin: const EdgeInsets.symmetric(vertical: 8),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            event["event_name"],
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            "Date & Time: ${event["event_date"].replaceAll('T', ' ')}",
+                          ),
+                          const SizedBox(height: 4),
+                          Text("Code: $code"),
+                          const SizedBox(height: 8),
+                          Center(
+                            child: SizedBox(
+                              height: 150,
+                              width: 150,
+                              child: QrImageView(
+                                data: code,
+                                version: QrVersions.auto,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
             ),
           ],
         ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        selectedItemColor: Colors.deepPurple,
-        unselectedItemColor: Colors.grey,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Dashboard"),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.event), label: "Event Management"),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.bar_chart), label: "Event Statistics"),
-        ],
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+
 //import '../models.dart';
 
 class AppState extends ChangeNotifier {
@@ -11,6 +12,8 @@ class AppState extends ChangeNotifier {
   int get score => _score;
   int get streak => _streak;
   Set<String> get completedStallIds => _completedStallIds;
+
+  get attendanceData => null;
 
   void setStudentNumber(String newStudentNumber) {
     _studentNumber = newStudentNumber;
