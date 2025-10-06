@@ -186,7 +186,7 @@ class AdminHomePage extends StatelessWidget {
 }
 
 /// -----------------------------
-/// ANALYTICS PAGE (your existing one)
+/// ANALYTICS PAGE (Student Attendance Only)
 /// -----------------------------
 class AnalyticsPage extends StatefulWidget {
   const AnalyticsPage({super.key});
@@ -197,49 +197,27 @@ class AnalyticsPage extends StatefulWidget {
 
 class _AnalyticsPageState extends State<AnalyticsPage> {
   bool showAnalytics = true;
-  final List<String> lecturesPresent = [];
   final List<String> studentsPresent = [];
-  final List<String> previousLectures = [];
   final List<String> previousStudents = [];
-  final TextEditingController _nameController = TextEditingController();
-  String _selectedType = 'Student';
 
   void toggleAnalytics() {
     setState(() => showAnalytics = !showAnalytics);
   }
 
-  void addPerson() {
-    String name = _nameController.text.trim();
-    if (name.isEmpty) return;
-    setState(() {
-      if (_selectedType == 'Lecture') {
-        lecturesPresent.add(name);
-        previousLectures.add(name);
-      } else {
-        studentsPresent.add(name);
-        previousStudents.add(name);
-      }
-      _nameController.clear();
-    });
-  }
-
   void resetAttendance() {
     setState(() {
-      lecturesPresent.clear();
       studentsPresent.clear();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final int totalLectures = lecturesPresent.length;
     final int totalStudents = studentsPresent.length;
-    final int total = totalLectures + totalStudents;
-    final double lecturePercent = total > 0 ? (totalLectures / total) * 100 : 0;
-    final double studentPercent = total > 0 ? (totalStudents / total) * 100 : 0;
+    final double studentPercent =
+    totalStudents > 0 ? (totalStudents / totalStudents) * 100 : 0;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Attendance Analytics')),
+      appBar: AppBar(title: const Text('Student Attendance Analytics')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -260,105 +238,26 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
               ],
             ),
             const SizedBox(height: 20),
-            Card(
-              elevation: 3,
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  children: [
-                    const Text('Add Person Manually',
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 10),
-                    TextField(
-                      controller: _nameController,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        labelText: 'Enter Name',
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        const Text('Type: '),
-                        DropdownButton<String>(
-                          value: _selectedType,
-                          items: const [
-                            DropdownMenuItem(
-                                value: 'Student', child: Text('Student')),
-                            DropdownMenuItem(
-                                value: 'Lecture', child: Text('Lecture')),
-                          ],
-                          onChanged: (value) {
-                            if (value != null) {
-                              setState(() {
-                                _selectedType = value;
-                              });
-                            }
-                          },
-                        ),
-                        const SizedBox(width: 20),
-                        ElevatedButton(
-                          onPressed: addPerson,
-                          child: const Text('Add'),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
+
             if (showAnalytics) ...[
-              Row(
+              Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('Lectures Present',
-                            style: TextStyle(
-                                fontSize: 20, fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 10),
-                        ListView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: lecturesPresent.length,
-                          itemBuilder: (_, index) {
-                            return ListTile(
-                              leading:
-                              const Icon(Icons.person, color: Colors.blue),
-                              title: Text(lecturesPresent[index]),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 20),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('Students Present',
-                            style: TextStyle(
-                                fontSize: 20, fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 10),
-                        ListView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: studentsPresent.length,
-                          itemBuilder: (_, index) {
-                            return ListTile(
-                              leading: const Icon(Icons.person_outline,
-                                  color: Colors.green),
-                              title: Text(studentsPresent[index]),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
+                  const Text('Students Present',
+                      style:
+                      TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 10),
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: studentsPresent.length,
+                    itemBuilder: (_, index) {
+                      return ListTile(
+                        leading: const Icon(Icons.person_outline,
+                            color: Colors.green),
+                        title: Text(studentsPresent[index]),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -367,7 +266,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                   style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
               const SizedBox(height: 10),
               Text(
-                'Lectures: ${lecturePercent.toStringAsFixed(1)}% | Students: ${studentPercent.toStringAsFixed(1)}%',
+                'Students: ${studentPercent.toStringAsFixed(1)}%',
                 style: const TextStyle(fontSize: 18),
               ),
             ],
@@ -379,7 +278,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
 }
 
 /// -----------------------------
-/// EVENT MANAGEMENT PAGE (dummy)
+/// EVENT MANAGEMENT PAGE
 /// -----------------------------
 class EventManagementPage extends StatelessWidget {
   const EventManagementPage({super.key});
