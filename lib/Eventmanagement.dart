@@ -3,19 +3,21 @@ import 'StallManagement.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import'AnalyticsPage.dart';
 
-class EventsManagementPage extends StatefulWidget {
-  const EventsManagementPage({super.key});
+class EventManagementPage extends StatefulWidget {
+  const EventManagementPage({super.key});
 
   @override
-  State<EventsManagementPage> createState() => _EventsManagementPageState();
+  State<EventManagementPage> createState() => _EventManagementPageState();
 }
 
-class _EventsManagementPageState extends State<EventsManagementPage> {
+class _EventManagementPageState extends State<EventManagementPage> {
   final TextEditingController _nameController = TextEditingController();
   DateTime? _selectedDateTime;
 
   List events = [];
+  List upcomingEvents = []; // filtered upcoming events
   bool loading = true;
 
   @override
@@ -47,10 +49,6 @@ class _EventsManagementPageState extends State<EventsManagementPage> {
         setState(() {
           events = fetchedEvents;
         });
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Failed to load events: ${response.statusCode}")),
-        );
       }
     } catch (e) {
       print("Error fetching events: $e");
@@ -76,8 +74,7 @@ class _EventsManagementPageState extends State<EventsManagementPage> {
     String eventDate = formatDateTimeForMySQL(_selectedDateTime!);
 
     try {
-      var url = Uri.parse("http://10.0.2.2:3000/create_event");
-
+      var url = Uri.parse("http://localhost:3000/create_event");
       var response = await http.post(
         url,
         headers: {"Content-Type": "application/json"},
@@ -98,7 +95,6 @@ class _EventsManagementPageState extends State<EventsManagementPage> {
         _selectedDateTime = null;
 
         await fetchEvents();
-
         // Navigate to StallManagementPage after event creation
         Navigator.push(
           context,
@@ -108,9 +104,8 @@ class _EventsManagementPageState extends State<EventsManagementPage> {
         );
       } else {
         var error = json.decode(response.body);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error: ${error['message']}")),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text("Error: ${error['message']}")));
       }
     } catch (e) {
       print("Error creating event: $e");
@@ -154,8 +149,7 @@ class _EventsManagementPageState extends State<EventsManagementPage> {
   /// Get upcoming events
   List getUpcomingEvents() {
     DateTime now = DateTime.now();
-    List upcoming =
-    events.where((e) => DateTime.parse(e["event_date"]).isAfter(now)).toList();
+    List upcoming = events.where((e) => DateTime.parse(e["event_date"]).isAfter(now)).toList();
     upcoming.sort((a, b) =>
         DateTime.parse(a["event_date"]).compareTo(DateTime.parse(b["event_date"])));
     return upcoming;
@@ -196,6 +190,20 @@ class _EventsManagementPageState extends State<EventsManagementPage> {
               ],
             ),
             const SizedBox(height: 10),
+// View Analytics button
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AnalyticsPage()),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange, // Optional: differentiate the button
+              ),
+              child: const Text("View Analytics"),
+            ),
+            const SizedBox(height: 10),
 
             // Create event
             ElevatedButton(
@@ -208,7 +216,11 @@ class _EventsManagementPageState extends State<EventsManagementPage> {
             ElevatedButton(
               onPressed: () {
                 setState(() {
-                  events = getUpcomingEvents();
+                  upcomingEvents = events
+                      .where((e) => DateTime.parse(e["event_date"]).isAfter(DateTime.now()))
+                      .toList()
+                    ..sort((a, b) => DateTime.parse(a["event_date"])
+                        .compareTo(DateTime.parse(b["event_date"])));
                 });
               },
               child: const Text("View Upcoming Events"),

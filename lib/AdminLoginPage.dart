@@ -100,6 +100,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
               ),
 
               // ✅ Sign In button
+              // Sign In button
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -107,7 +108,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                          builder: (_) => const EventsManagementPage()), // ✅ FIXED
+                          builder: (_) => const EventManagementPage()), // fixed
                     );
                   },
                   style: ElevatedButton.styleFrom(

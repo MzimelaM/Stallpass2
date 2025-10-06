@@ -1,124 +1,407 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'state/app_state.dart';
 
-class AnalyticsPage extends StatelessWidget {
-  const AnalyticsPage({super.key});
+
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final attendanceData = Provider.of<AppState>(context).attendanceData;
-    final int totalStudents = attendanceData.length;
-    final int presentCount =
-        attendanceData.where((student) => student['status'] == 'Present').length;
-    final int absentCount =
-        attendanceData.where((student) => student['status'] == 'Absent').length;
-    final double attendanceRate =
-    totalStudents > 0 ? (presentCount / totalStudents * 100) : 0;
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'Admin Panel',
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: const AdminLoginPage(),
+    );
+  }
+}
 
+/// -----------------------------
+/// LOGIN PAGE
+/// -----------------------------
+class AdminLoginPage extends StatefulWidget {
+  const AdminLoginPage({super.key});
+
+  @override
+  State<AdminLoginPage> createState() => _AdminLoginPageState();
+}
+
+class _AdminLoginPageState extends State<AdminLoginPage> {
+  final TextEditingController staffIdController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  bool obscurePassword = true;
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Attendance Analytics'),
-      ),
+      backgroundColor: const Color(0xFFD6D6F5),
       body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Overview',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 24),
-            Card(
-              elevation: 3,
-              child: ListTile(
-                leading: const Icon(Icons.people, color: Colors.deepPurple),
-                title: const Text('Total Students'),
-                trailing: Text(
-                  '$totalStudents',
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Card(
-              elevation: 3,
-              child: ListTile(
-                leading: const Icon(Icons.check_circle, color: Colors.green),
-                title: const Text('Present'),
-                trailing: Text(
-                  '$presentCount',
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Card(
-              elevation: 3,
-              child: ListTile(
-                leading: const Icon(Icons.cancel, color: Colors.red),
-                title: const Text('Absent'),
-                trailing: Text(
-                  '$absentCount',
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            Card(
-              elevation: 3,
-              child: ListTile(
-                leading: const Icon(Icons.analytics, color: Colors.deepPurple),
-                title: const Text('Attendance Rate'),
-                trailing: Text(
-                  '${attendanceRate.toStringAsFixed(1)}%',
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ),
-            const SizedBox(height: 32),
-            const Text(
-              'Details',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            Expanded(
-              child: ListView.builder(
-                itemCount: attendanceData.length,
-                itemBuilder: (context, index) {
-                  final student = attendanceData[index];
-                  return ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: student['status'] == 'Present'
-                          ? Colors.green
-                          : Colors.red,
-                      child: Text(student['name'][0]),
-                    ),
-                    title: Text(student['name']),
-                    subtitle: Text('ID: ${student['id']}'),
-                    trailing: Text(
-                      student['status'],
+        padding: const EdgeInsets.all(20),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const SizedBox(height: 60),
+              Column(
+                children: const [
+                  Icon(Icons.qr_code, size: 80, color: Colors.teal),
+                  SizedBox(height: 10),
+                  Text("STALL PASS",
                       style: TextStyle(
-                        color: student['status'] == 'Present'
-                            ? Colors.green
-                            : Colors.red,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  );
-                },
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black)),
+                  Text("SCAN.ENGAGE.SUCCEED",
+                      style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black54)),
+                ],
+              ),
+              const SizedBox(height: 30),
+              const Text("Welcome Back!",
+                  style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black)),
+              const SizedBox(height: 20),
+
+              // Staff ID
+              TextField(
+                controller: staffIdController,
+                decoration: InputDecoration(
+                  hintText: "Staff ID",
+                  prefixIcon: const Icon(Icons.badge),
+                  border:
+                  OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
+                  filled: true,
+                  fillColor: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 15),
+
+              // Password
+              TextField(
+                controller: passwordController,
+                obscureText: obscurePassword,
+                decoration: InputDecoration(
+                  hintText: "Password",
+                  prefixIcon: const Icon(Icons.lock),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                        obscurePassword ? Icons.visibility : Icons.visibility_off),
+                    onPressed: () {
+                      setState(() {
+                        obscurePassword = !obscurePassword;
+                      });
+                    },
+                  ),
+                  border:
+                  OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
+                  filled: true,
+                  fillColor: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () {},
+                  child: const Text("Forgot Password?"),
+                ),
               ),
 
+              // Sign In button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (_) => const AdminHomePage()),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30)),
+                      padding: const EdgeInsets.symmetric(vertical: 15)),
+                  child: const Text("Sign In",
+                      style: TextStyle(color: Colors.white, fontSize: 16)),
+                ),
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// -----------------------------
+/// ADMIN HOME PAGE WITH 3 BUTTONS
+/// -----------------------------
+class AdminHomePage extends StatelessWidget {
+  const AdminHomePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Admin Dashboard')),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const AnalyticsPage()));
+              },
+              child: const Text('Analytics'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const EventManagementPage()));
+              },
+              child: const Text('Event Management'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const Page3()));
+              },
+              child: const Text('Another Admin Page'),
             ),
           ],
         ),
       ),
     );
+  }
+}
+
+/// -----------------------------
+/// ANALYTICS PAGE (your existing one)
+/// -----------------------------
+class AnalyticsPage extends StatefulWidget {
+  const AnalyticsPage({super.key});
+
+  @override
+  State<AnalyticsPage> createState() => _AnalyticsPageState();
+}
+
+class _AnalyticsPageState extends State<AnalyticsPage> {
+  bool showAnalytics = true;
+  final List<String> lecturesPresent = [];
+  final List<String> studentsPresent = [];
+  final List<String> previousLectures = [];
+  final List<String> previousStudents = [];
+  final TextEditingController _nameController = TextEditingController();
+  String _selectedType = 'Student';
+
+  void toggleAnalytics() {
+    setState(() => showAnalytics = !showAnalytics);
+  }
+
+  void addPerson() {
+    String name = _nameController.text.trim();
+    if (name.isEmpty) return;
+    setState(() {
+      if (_selectedType == 'Lecture') {
+        lecturesPresent.add(name);
+        previousLectures.add(name);
+      } else {
+        studentsPresent.add(name);
+        previousStudents.add(name);
+      }
+      _nameController.clear();
+    });
+  }
+
+  void resetAttendance() {
+    setState(() {
+      lecturesPresent.clear();
+      studentsPresent.clear();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final int totalLectures = lecturesPresent.length;
+    final int totalStudents = studentsPresent.length;
+    final int total = totalLectures + totalStudents;
+    final double lecturePercent = total > 0 ? (totalLectures / total) * 100 : 0;
+    final double studentPercent = total > 0 ? (totalStudents / total) * 100 : 0;
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Attendance Analytics')),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: toggleAnalytics,
+                  child:
+                  Text(showAnalytics ? 'Hide Analytics' : 'Show Analytics'),
+                ),
+                ElevatedButton(
+                  onPressed: resetAttendance,
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                  child: const Text('Reset Attendance'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Card(
+              elevation: 3,
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  children: [
+                    const Text('Add Person Manually',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: _nameController,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelText: 'Enter Name',
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        const Text('Type: '),
+                        DropdownButton<String>(
+                          value: _selectedType,
+                          items: const [
+                            DropdownMenuItem(
+                                value: 'Student', child: Text('Student')),
+                            DropdownMenuItem(
+                                value: 'Lecture', child: Text('Lecture')),
+                          ],
+                          onChanged: (value) {
+                            if (value != null) {
+                              setState(() {
+                                _selectedType = value;
+                              });
+                            }
+                          },
+                        ),
+                        const SizedBox(width: 20),
+                        ElevatedButton(
+                          onPressed: addPerson,
+                          child: const Text('Add'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            if (showAnalytics) ...[
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Lectures Present',
+                            style: TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 10),
+                        ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: lecturesPresent.length,
+                          itemBuilder: (_, index) {
+                            return ListTile(
+                              leading:
+                              const Icon(Icons.person, color: Colors.blue),
+                              title: Text(lecturesPresent[index]),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 20),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Students Present',
+                            style: TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 10),
+                        ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: studentsPresent.length,
+                          itemBuilder: (_, index) {
+                            return ListTile(
+                              leading: const Icon(Icons.person_outline,
+                                  color: Colors.green),
+                              title: Text(studentsPresent[index]),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              const Text('Attendance Stats',
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 10),
+              Text(
+                'Lectures: ${lecturePercent.toStringAsFixed(1)}% | Students: ${studentPercent.toStringAsFixed(1)}%',
+                style: const TextStyle(fontSize: 18),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// -----------------------------
+/// EVENT MANAGEMENT PAGE (dummy)
+/// -----------------------------
+class EventManagementPage extends StatelessWidget {
+  const EventManagementPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(title: const Text('Event Management')),
+        body: const Center(child: Text('Manage your events here')));
+  }
+}
+
+/// -----------------------------
+/// PAGE 3
+/// -----------------------------
+class Page3 extends StatelessWidget {
+  const Page3({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(title: const Text('Page 3')),
+        body: const Center(child: Text('This is another Admin page')));
   }
 }
