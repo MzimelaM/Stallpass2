@@ -23,20 +23,21 @@ class _QRScannerPageState extends State<QRScannerPage> {
   }
 
   void _onDetect(BarcodeCapture capture) async {
-    if (_isProcessing) return;
+    if (_isProcessing) return; // prevent multiple triggers
+
     final barcodes = capture.barcodes;
     if (barcodes.isNotEmpty) {
       String scannedCode = barcodes.first.rawValue ?? "";
       if (scannedCode.isNotEmpty) {
         setState(() => _isProcessing = true);
-        await _confirmAttendance(scannedCode);
+        await _confirmAttendance(scannedCode.trim());
       }
     }
   }
 
   Future<void> _confirmAttendance(String eventCode) async {
     try {
-      var url = Uri.parse("http://10.0.2.2:3000/confirm_attendance");
+      var url = Uri.parse("http://10.0.2.2:3000/attendance/confirm"); // ✅ correct endpoint
       var response = await http.post(
         url,
         headers: {"Content-Type": "application/json"},
@@ -46,21 +47,36 @@ class _QRScannerPageState extends State<QRScannerPage> {
         }),
       );
 
-      var data = json.decode(response.body);
+      // ✅ Handle non-JSON or error responses safely
+      if (response.statusCode != 200) {
+        try {
+          final error = json.decode(response.body);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("❌ ${error["message"] ?? "Failed to confirm"}")),
+          );
+        } catch (_) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("❌ Server error: ${response.statusCode}")),
+          );
+        }
+        setState(() => _isProcessing = false);
+        return;
+      }
 
+      final data = json.decode(response.body);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(data["message"] ?? "Attendance confirmed")),
+        SnackBar(content: Text(data["message"] ?? "✅ Attendance confirmed")),
       );
 
-      // Navigate to AttendancePage
+      // ✅ Navigate back to AttendancePage and refresh
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (_) =>
-              AttendancePage(studentNumber: widget.studentNumber),
+          builder: (_) => AttendancePage(studentNumber: widget.studentNumber),
         ),
       );
     } catch (e) {
+      print("Error confirming attendance: $e");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error confirming attendance: $e")),
       );
