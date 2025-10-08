@@ -74,7 +74,8 @@ class _EventManagementPageState extends State<EventManagementPage> {
     String eventDate = formatDateTimeForMySQL(_selectedDateTime!);
 
     try {
-      var url = Uri.parse("http://localhost:3000/create_event");
+      var url = Uri.parse("http://10.0.2.2:3000/create_event");
+
       var response = await http.post(
         url,
         headers: {"Content-Type": "application/json"},
