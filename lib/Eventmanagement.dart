@@ -3,7 +3,7 @@ import 'StallManagement.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import'AnalyticsPage.dart';
+import 'AnalyticsPage.dart';
 
 class EventManagementPage extends StatefulWidget {
   const EventManagementPage({super.key});
@@ -14,10 +14,11 @@ class EventManagementPage extends StatefulWidget {
 
 class _EventManagementPageState extends State<EventManagementPage> {
   final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _locationController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
   DateTime? _selectedDateTime;
 
   List events = [];
-  List upcomingEvents = []; // filtered upcoming events
   bool loading = true;
 
   @override
@@ -26,13 +27,11 @@ class _EventManagementPageState extends State<EventManagementPage> {
     fetchEvents();
   }
 
-  // Format DateTime to MySQL DATETIME string
   String formatDateTimeForMySQL(DateTime dt) {
     return "${dt.year.toString().padLeft(4, '0')}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')} "
         "${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}:00";
   }
 
-  /// Fetch all events from backend
   Future<void> fetchEvents() async {
     setState(() => loading = true);
     try {
@@ -41,17 +40,18 @@ class _EventManagementPageState extends State<EventManagementPage> {
 
       if (response.statusCode == 200) {
         List fetchedEvents = json.decode(response.body);
-
-        // Sort by date & time
         fetchedEvents.sort((a, b) =>
             DateTime.parse(a["event_date"]).compareTo(DateTime.parse(b["event_date"])));
 
         setState(() {
           events = fetchedEvents;
         });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Failed to fetch events: ${response.statusCode}")),
+        );
       }
     } catch (e) {
-      print("Error fetching events: $e");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error fetching events: $e")),
       );
@@ -60,9 +60,10 @@ class _EventManagementPageState extends State<EventManagementPage> {
     }
   }
 
-  /// Create new event
   Future<void> createEvent() async {
     String name = _nameController.text.trim();
+    String location = _locationController.text.trim();
+    String description = _descriptionController.text.trim();
 
     if (name.isEmpty || _selectedDateTime == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -73,17 +74,28 @@ class _EventManagementPageState extends State<EventManagementPage> {
 
     String eventDate = formatDateTimeForMySQL(_selectedDateTime!);
 
+    // Format description with location prefix
+    String fullDescription = '';
+    if (location.isNotEmpty) {
+      fullDescription = 'LOCATION: $location\n';
+    }
+    if (description.isNotEmpty) {
+      fullDescription += description;
+    }
+
     try {
       var url = Uri.parse("http://10.0.2.2:3000/create_event");
-
       var response = await http.post(
         url,
         headers: {"Content-Type": "application/json"},
         body: json.encode({
           "event_name": name,
           "event_date": eventDate,
+          "event_description": fullDescription,
         }),
       );
+
+      print("Create event response: ${response.body}");
 
       if (response.statusCode == 201) {
         var data = json.decode(response.body);
@@ -93,10 +105,12 @@ class _EventManagementPageState extends State<EventManagementPage> {
         );
 
         _nameController.clear();
+        _locationController.clear();
+        _descriptionController.clear();
         _selectedDateTime = null;
 
         await fetchEvents();
-        // Navigate to StallManagementPage after event creation
+
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -106,17 +120,15 @@ class _EventManagementPageState extends State<EventManagementPage> {
       } else {
         var error = json.decode(response.body);
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text("Error: ${error['message']}")));
+            .showSnackBar(SnackBar(content: Text("Error: ${error['message'] ?? 'Unknown error'}")));
       }
     } catch (e) {
-      print("Error creating event: $e");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error creating event: $e")),
       );
     }
   }
 
-  /// Pick date and time
   Future<void> _pickDateTime() async {
     DateTime now = DateTime.now();
 
@@ -147,15 +159,6 @@ class _EventManagementPageState extends State<EventManagementPage> {
     }
   }
 
-  /// Get upcoming events
-  List getUpcomingEvents() {
-    DateTime now = DateTime.now();
-    List upcoming = events.where((e) => DateTime.parse(e["event_date"]).isAfter(now)).toList();
-    upcoming.sort((a, b) =>
-        DateTime.parse(a["event_date"]).compareTo(DateTime.parse(b["event_date"])));
-    return upcoming;
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -164,7 +167,6 @@ class _EventManagementPageState extends State<EventManagementPage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // Event name
             TextField(
               controller: _nameController,
               decoration: const InputDecoration(
@@ -174,7 +176,25 @@ class _EventManagementPageState extends State<EventManagementPage> {
             ),
             const SizedBox(height: 10),
 
-            // Date & Time picker
+            TextField(
+              controller: _locationController,
+              decoration: const InputDecoration(
+                labelText: "Event Location",
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 10),
+
+            TextField(
+              controller: _descriptionController,
+              decoration: const InputDecoration(
+                labelText: "Event Description (Optional)",
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 3,
+            ),
+            const SizedBox(height: 10),
+
             Row(
               children: [
                 Expanded(
@@ -191,7 +211,7 @@ class _EventManagementPageState extends State<EventManagementPage> {
               ],
             ),
             const SizedBox(height: 10),
-// View Analytics button
+
             ElevatedButton(
               onPressed: () {
                 Navigator.push(
@@ -199,36 +219,17 @@ class _EventManagementPageState extends State<EventManagementPage> {
                   MaterialPageRoute(builder: (_) => const AnalyticsPage()),
                 );
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange, // Optional: differentiate the button
-              ),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
               child: const Text("View Analytics"),
             ),
             const SizedBox(height: 10),
 
-            // Create event
             ElevatedButton(
               onPressed: createEvent,
               child: const Text("Create Event & Generate QR"),
             ),
             const SizedBox(height: 10),
 
-            // View upcoming events
-            ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  upcomingEvents = events
-                      .where((e) => DateTime.parse(e["event_date"]).isAfter(DateTime.now()))
-                      .toList()
-                    ..sort((a, b) => DateTime.parse(a["event_date"])
-                        .compareTo(DateTime.parse(b["event_date"])));
-                });
-              },
-              child: const Text("View Upcoming Events"),
-            ),
-            const SizedBox(height: 20),
-
-            // Event list
             loading
                 ? const CircularProgressIndicator()
                 : Expanded(
@@ -258,15 +259,21 @@ class _EventManagementPageState extends State<EventManagementPage> {
                             "Date & Time: ${event["event_date"].replaceAll('T', ' ')}",
                           ),
                           const SizedBox(height: 4),
-                          Text("Code: $code"),
+                          // Display location if available
+                          if (event["event_description"] != null &&
+                              event["event_description"].toString().contains('LOCATION:'))
+                            Text(
+                              "📍 ${event["event_description"].toString().split('LOCATION: ').last.split('\n').first}",
+                              style: const TextStyle(fontWeight: FontWeight.bold),
+                            ),
                           const SizedBox(height: 8),
                           Center(
                             child: SizedBox(
                               height: 150,
                               width: 150,
                               child: QrImageView(
-                                data: code,
-                                version: QrVersions.auto,
+                                semanticsLabel: code,
+                                version: QrVersions.auto, data: '',
                               ),
                             ),
                           ),

@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:intl/intl.dart';
-import 'package:qr_flutter/qr_flutter.dart';
+import 'ConfirmAttendance.dart'; // New page for pre-confirm
 
 class NotificationPage extends StatefulWidget {
-  const NotificationPage({super.key});
+  final String studentNumber; // Add this
+  const NotificationPage({super.key, required this.studentNumber});
 
   @override
   State<NotificationPage> createState() => _NotificationPageState();
@@ -22,8 +23,7 @@ class _NotificationPageState extends State<NotificationPage> {
 
   Future<void> _fetchNotifications() async {
     try {
-      final response =
-      await http.get(Uri.parse("http://10.0.2.2:3000/get_events")); // your backend
+      final response = await http.get(Uri.parse("http://10.0.2.2:3000/get_events"));
       if (response.statusCode == 200) {
         setState(() {
           notifications = List<Map<String, dynamic>>.from(json.decode(response.body));
@@ -32,44 +32,6 @@ class _NotificationPageState extends State<NotificationPage> {
     } catch (e) {
       print("Error fetching events: $e");
     }
-  }
-
-  void _showNotificationDetails(Map<String, dynamic> event) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(
-          event['event_name'],
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              "📅 ${DateFormat('yyyy-MM-dd').format(DateTime.parse(event['event_date']))}",
-              style: const TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 16),
-            // ✅ Give QR a fixed size
-            SizedBox(
-              width: 200,
-              height: 200,
-              child: QrImageView(
-                data: event['event_code'].toString(),
-                version: QrVersions.auto,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Close"),
-          ),
-        ],
-      ),
-    );
   }
 
   @override
@@ -92,7 +54,18 @@ class _NotificationPageState extends State<NotificationPage> {
                   DateFormat('yyyy-MM-dd').format(DateTime.parse(event['event_date'])),
                 ),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                onTap: () => _showNotificationDetails(event),
+                onTap: () {
+                  // Navigate to ConfirmAttendance page
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ConfirmAttendance(
+                        studentNumber: widget.studentNumber,
+                        event: event,
+                      ),
+                    ),
+                  );
+                },
               ),
             );
           },

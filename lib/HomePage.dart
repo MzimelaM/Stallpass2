@@ -46,7 +46,8 @@ class HomePage extends StatelessWidget {
             ),
             ListTile(
               title: const Text('Notifications'),
-              onTap: () => _navigateTo(context, const NotificationPage()),
+              onTap: () => _navigateTo(context, NotificationPage(studentNumber: studentNumber)),
+
             ),
             ListTile(
               title: const Text('Success Page'),
